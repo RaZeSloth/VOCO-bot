@@ -1,2 +1,2 @@
 # VOCO-bot
- Kooli discordi serveri bot
+ Kooli Discordi serveri bot
