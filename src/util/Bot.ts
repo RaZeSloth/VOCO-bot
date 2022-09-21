@@ -9,8 +9,7 @@ class VocoBot extends Client {
 		this.commands = new Collection();
 	}
 	async start() {
-		await (await import(path.resolve(__dirname, '../handlers/cmd_handler'))).default(this);
-		await (await import(path.resolve(__dirname, '../handlers/event_handler'))).default(this);
+		['cmd_handler', 'event_handler'].map(async hand => await (await import(path.resolve(__dirname, `../handlers/${hand}`))).default(this));
 	}
 }
 
