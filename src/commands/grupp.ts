@@ -1,12 +1,18 @@
-import { ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder, GuildMember } from 'discord.js';
 import { command } from '../util/interfaces';
 
 export = {
-	name: 'grupp',
+	name: 'defineeri',
 	description: 'Vali enda grupp ja saa ✨special✨ gruppi role',
 	dmPermission: false,
 	type: ApplicationCommandType.ChatInput,
 	options: [
+		{
+			name: 'nimi',
+			description: 'Teie päris nimi, võib olla ka hüüdnimi.',
+			type: ApplicationCommandOptionType.String,
+			required: true,
+		},
 		{
 			name: 'grupp',
 			type: ApplicationCommandOptionType.String,
@@ -26,6 +32,13 @@ export = {
 	],
 	async execute(client, int: ChatInputCommandInteraction) {
 		const grupp = int.options.getString('grupp');
-		await int.reply({ ephemeral: true, content: grupp === 'g1' ? 'Grupp 1' : 'Grupp 2' });
+		const nimi = int.options.getString('nimi');
+		const kasutaja = (int.member as GuildMember);
+		await kasutaja.setNickname(nimi).catch((e) => console.error(e.name));
+		if (kasutaja.roles.cache.hasAny('1021472465744044092', '1021472491367047188')) {
+			await (int.member as GuildMember).roles.remove(['1021472465744044092', '1021472491367047188']);
+		}
+		await kasutaja.roles.add(grupp === 'g1' ? '1021472465744044092' : '1021472491367047188');
+		return await int.reply({ embeds: [new EmbedBuilder().setColor('#000000').setDescription(`Nimi muutetud: **${nimi}**\nTeie grupp: ${grupp === 'g1' ? '<@&1021472465744044092>' : '<@&1021472491367047188>'}`)], ephemeral: true });
 	},
 } as command;
