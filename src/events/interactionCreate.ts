@@ -6,8 +6,7 @@ export = async (client: VocoBot, int: CommandInteraction) => {
 		const command = client.commands.get(int.commandName);
 		try {
 			await command.execute(client, int);
-		}
-		catch (e) {
+		} catch (e) {
 			console.error(e);
 		}
 
