@@ -7,3 +7,5 @@ client.login(process.env.token_bot).then(() => client.start()).catch((e) => {
 	console.error(e);
 	process.exit();
 });
+
+export { client };

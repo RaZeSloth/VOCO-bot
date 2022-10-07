@@ -2,9 +2,10 @@ import Puppeteer from 'puppeteer';
 import cron, { ScheduledTask } from 'node-cron';
 import { green } from 'chalk';
 import { lesson } from './interfaces';
+import { client } from '..';
+import { TextBasedChannel } from 'discord.js';
 
-
-const getAllSchoolTimesAndLessons = async (): Promise<lesson[]> => {
+const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }): Promise<lesson[]> => {
 	const lesson_array: string[] = [];
 	const times_array: string[] = [];
 	const b = await Puppeteer.launch();
@@ -12,6 +13,10 @@ const getAllSchoolTimesAndLessons = async (): Promise<lesson[]> => {
 	await page.goto('https://voco.ee/tunniplaan/');
 	await page.select('#course_select', '1692');
 	await new Promise(r => setTimeout(r, 500));
+	if (options?.getNextWeek) {
+		await page.click('.fc-next-button');
+		await new Promise(r => setTimeout(r, 500));
+	}
 	const lessons = await page.$$('.fc-title');
 	const timeWhenLesson = await page.$$('.fc-time span');
 	for (const lesson of lessons) {
@@ -55,31 +60,29 @@ const getMinforCron = (time: string) => {
 const getHourforCron = (time: string) => {
 	return time.split('-')[0].trim().split(':')[0];
 };
-const init = async () => {
-	let cron_job_array: ScheduledTask[] = [];
+const startCronJobs = async (): Promise<ScheduledTask[]> => {
+	const cron_job_array: ScheduledTask[] = [];
 	const data = await getAllSchoolTimesAndLessons();
 	const day = new Date().getDay();
-	if (day > 1 && day < 5) {
+	if (day > 1 && day <= 5) {
 		const currentDay = data[day - 1];
 		for (const lesson of currentDay) {
-			const job = cron.schedule(`${getMinforCron(lesson.time)} ${getHourforCron(lesson.time)} * * *`, () => {
-				console.log(lesson.lesson);
+			const job = cron.schedule(`${getMinforCron(lesson.time)} ${getHourforCron(lesson.time)} * * *`, async () => {
+				await (client.channels.cache.get('1021885044102529024') as TextBasedChannel).send(`<@1021468029726494751> ${lesson.lesson}`);
 			});
 			cron_job_array.push(job);
 			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson.time} is scheduled`));
 		}
+		return cron_job_array;
 	}
-	cron.schedule('0 0 * * *', async () => {
-		cron_job_array.forEach(job => {
-			job?.stop?.();
-		});
-		cron_job_array = [];
-		await init();
-	});
-
 };
 
-(async () => {
-	await init();
-})();
+export = async () => {
+	const crons = await startCronJobs();
+
+	cron.schedule('0 0 * * *', async () => {
+		crons.forEach(cron => cron.stop());
+		await startCronJobs();
+	});
+};
 
