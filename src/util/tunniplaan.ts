@@ -69,7 +69,7 @@ const startCronJobs = async (): Promise<ScheduledTask[]> => {
 		for (const lesson of currentDay) {
 			const job = cron.schedule(`${getMinforCron(lesson.time)} ${getHourforCron(lesson.time)} * * *`, async () => {
 				await (client.channels.cache.get('1021885044102529024') as TextBasedChannel).send(`<@1021468029726494751> ${lesson.lesson}`);
-			});
+			}, { timezone: 'Europe/Tallinn' });
 			cron_job_array.push(job);
 			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson.time} is scheduled`));
 		}
@@ -83,6 +83,6 @@ export = async () => {
 	cron.schedule('0 0 * * *', async () => {
 		crons.forEach(cron => cron.stop());
 		await startCronJobs();
-	});
+	}, { timezone: 'Europe/Tallinn' });
 };
 
