@@ -8,7 +8,7 @@ import { TextBasedChannel } from 'discord.js';
 const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }): Promise<lesson[]> => {
 	const lesson_array: string[] = [];
 	const times_array: string[] = [];
-	const b = await Puppeteer.launch();
+	const b = await Puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 	const page = await b.newPage();
 	await page.goto('https://voco.ee/tunniplaan/');
 	await page.select('#course_select', '1692');
