@@ -4,7 +4,7 @@ import { green } from 'chalk';
 import { lesson } from './interfaces';
 import { client } from '..';
 import { TextBasedChannel } from 'discord.js';
-
+const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }): Promise<lesson[]> => {
 	const lesson_array: string[] = [];
 	const times_array: string[] = [];
@@ -27,6 +27,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 		const time_text = await page.evaluate(e => e.textContent, time);
 		times_array.push(time_text);
 	}
+	await b.close();
 	const times = times_array.filter(d => {
 		if (d.toString().includes('-')) {
 			return d;
@@ -60,8 +61,7 @@ const getMinforCron = (time: string) => {
 const getHourforCron = (time: string) => {
 	return time.split('-')[0].trim().split(':')[0];
 };
-const startCronJobs = async (): Promise<ScheduledTask[]> => {
-	const cron_job_array: ScheduledTask[] = [];
+const startCronJobs = async () => {
 	const data = await getAllSchoolTimesAndLessons();
 	const day = new Date().getDay();
 	if (day > 1 && day <= 5) {
@@ -69,19 +69,19 @@ const startCronJobs = async (): Promise<ScheduledTask[]> => {
 		for (const lesson of currentDay) {
 			const job = cron.schedule(`${getMinforCron(lesson.time)} ${getHourforCron(lesson.time)} * * *`, async () => {
 				await (client.channels.cache.get('1021885044102529024') as TextBasedChannel).send(`<@1021468029726494751> ${lesson.lesson}`);
+				job.stop();
 			}, { timezone: 'Europe/Tallinn' });
-			cron_job_array.push(job);
+			cron_jobs.add(job);
 			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson.time} is scheduled`));
 		}
-		return cron_job_array;
 	}
 };
 
 export = async () => {
-	const crons = await startCronJobs();
-
+	await startCronJobs();
 	cron.schedule('0 0 * * *', async () => {
-		crons.forEach(cron => cron.stop());
+		cron_jobs.forEach(job => job.stop());
+		cron_jobs.clear();
 		await startCronJobs();
 	}, { timezone: 'Europe/Tallinn' });
 };
