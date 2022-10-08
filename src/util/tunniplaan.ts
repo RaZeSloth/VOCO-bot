@@ -62,9 +62,9 @@ const getHourforCron = (time: string) => {
 	return time.split('-')[0].trim().split(':')[0];
 };
 const startCronJobs = async () => {
-	const data = await getAllSchoolTimesAndLessons();
 	const day = new Date().getDay();
 	if (day > 1 && day <= 5) {
+		const data = await getAllSchoolTimesAndLessons();
 		const currentDay = data[day - 1];
 		for (const lesson of currentDay) {
 			const job = cron.schedule(`${getMinforCron(lesson.time)} ${getHourforCron(lesson.time)} * * *`, async () => {
