@@ -1,6 +1,6 @@
 import Puppeteer from 'puppeteer';
 import cron, { ScheduledTask } from 'node-cron';
-import { green } from 'chalk';
+import { green, yellow } from 'chalk';
 import { lesson } from './interfaces';
 import { client } from '..';
 import { TextBasedChannel } from 'discord.js';
@@ -74,6 +74,8 @@ const startCronJobs = async () => {
 			cron_jobs.add(job);
 			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson.time} is scheduled`));
 		}
+	} else {
+		console.log(yellow('Weekend day, skipping...'));
 	}
 };
 
