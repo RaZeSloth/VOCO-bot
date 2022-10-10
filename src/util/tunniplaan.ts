@@ -63,7 +63,7 @@ const getHourforCron = (time: string) => {
 };
 const startCronJobs = async () => {
 	const day = new Date().getDay();
-	if (day > 1 && day <= 5) {
+	if (day >= 1 && day <= 5) {
 		const data = await getAllSchoolTimesAndLessons();
 		const currentDay = data[day - 1];
 		for (const lesson of currentDay) {
