@@ -55,7 +55,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 };
 
 const getMinforCron = (time: string) => {
-	return parseInt(time.split('-')[0].trim().split(':')[1]) === 0 ? 45 : parseInt(time.split('-')[0].trim().split(':')[1]) - 15;
+	return parseInt(time.split('-')[0].trim().split(':')[1]) === 0 ? 45 : parseInt(time) > 15 ? parseInt(time.split('-')[0].trim().split(':')[1]) - 15 : 60 - (15 - parseInt(time.split('-')[0].trim().split(':')[1]));
 };
 
 const getHourforCron = (time: string) => {
