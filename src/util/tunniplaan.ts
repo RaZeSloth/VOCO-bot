@@ -1,4 +1,4 @@
-import Puppeteer from 'puppeteer';
+import Puppeteer from 'puppeteer-core';
 import cron, { ScheduledTask } from 'node-cron';
 import { green, yellow } from 'chalk';
 import { lesson } from './interfaces';
@@ -8,7 +8,7 @@ const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }): Promise<lesson[]> => {
 	const lesson_array: string[] = [];
 	const times_array: string[] = [];
-	const b = await Puppeteer.launch({ headless: true });
+	const b = await Puppeteer.launch({ headless: true, executablePath: '/usr/bin/chromium-browser' });
 	const page = await b.newPage();
 	await page.goto('https://voco.ee/tunniplaan/');
 	await page.select('#course_select', '1692');
