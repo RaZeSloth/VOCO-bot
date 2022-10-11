@@ -15,7 +15,7 @@
   "scripts": {
     "lint": "yarn run eslint .",
     "lint:fix": "yarn run eslint --fix .",
-    "start": "tsc && node ."
+    "start": "yarn run tsc && node ."
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",

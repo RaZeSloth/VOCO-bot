@@ -3,7 +3,7 @@ import cron, { ScheduledTask } from 'node-cron';
 import { green, yellow } from 'chalk';
 import { lesson } from './interfaces';
 import { client } from '..';
-import { TextBasedChannel } from 'discord.js';
+import { GuildTextBasedChannel } from 'discord.js';
 const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }): Promise<lesson[]> => {
 	const lesson_array: string[] = [];
@@ -12,10 +12,10 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 	const page = await b.newPage();
 	await page.goto('https://voco.ee/tunniplaan/');
 	await page.select('#course_select', '1692');
-	await new Promise(r => setTimeout(r, 500));
+	await new Promise(r => setTimeout(r, 2000));
 	if (options?.getNextWeek) {
 		await page.click('.fc-next-button');
-		await new Promise(r => setTimeout(r, 500));
+		await new Promise(r => setTimeout(r, 2000));
 	}
 	const lessons = await page.$$('.fc-title');
 	const timeWhenLesson = await page.$$('.fc-time span');
@@ -67,7 +67,7 @@ const getCrons = (time: string) => {
 	date.setHours(getHourforCron(time));
 	date.setMinutes(getMinforCron(time));
 	date.setMinutes(date.getMinutes() - 15);
-	return `${date.getMinutes()} ${date.getHours()} * * *`;
+	return { string: `${date.getMinutes()} ${date.getHours()} * * *`, date };
 };
 const startCronJobs = async () => {
 	const day = new Date().getDay();
@@ -75,12 +75,13 @@ const startCronJobs = async () => {
 		const data = await getAllSchoolTimesAndLessons();
 		const currentDay = data[day - 1];
 		for (const lesson of currentDay) {
-			const job = cron.schedule(getCrons(lesson.time), async () => {
-				await (client.channels.cache.get('1021885044102529024') as TextBasedChannel).send(`<@1021468029726494751> ${lesson.lesson}`);
+			const lesson_object_cron = getCrons(lesson.time);
+			const job = cron.schedule(lesson_object_cron.string, async () => {
+				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send(`<@1029335363040329749> ${lesson.lesson}`);
 				job.stop();
 			}, { timezone: 'Europe/Tallinn' });
 			cron_jobs.add(job);
-			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson.time} is scheduled`));
+			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson_object_cron.date.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 		}
 	} else {
 		console.log(yellow('Weekend day, skipping...'));
@@ -92,6 +93,7 @@ export = async () => {
 	cron.schedule('0 0 * * *', async () => {
 		cron_jobs.forEach(job => job.stop());
 		cron_jobs.clear();
+		await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).bulkDelete(100).catch(() => null);
 		await startCronJobs();
 	}, { timezone: 'Europe/Tallinn' });
 };
