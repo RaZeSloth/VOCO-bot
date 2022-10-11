@@ -55,11 +55,19 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 };
 
 const getMinforCron = (time: string) => {
-	return parseInt(time.split('-')[0].trim().split(':')[1]) === 0 ? 45 : parseInt(time) > 15 ? parseInt(time.split('-')[0].trim().split(':')[1]) - 15 : 60 - (parseInt(time.split('-')[0].trim().split(':')[1]));
+	return parseInt(time.split('-')[0].trim().split(':')[1]);
 };
 
 const getHourforCron = (time: string) => {
-	return time.split('-')[0].trim().split(':')[0];
+	return parseInt(time.split('-')[0].trim().split(':')[0]);
+};
+
+const getCrons = (time: string) => {
+	const date = new Date();
+	date.setHours(getHourforCron(time));
+	date.setMinutes(getMinforCron(time));
+	date.setMinutes(date.getMinutes() - 15);
+	return `${date.getMinutes()} ${date.getHours()} * * *`;
 };
 const startCronJobs = async () => {
 	const day = new Date().getDay();
@@ -67,7 +75,7 @@ const startCronJobs = async () => {
 		const data = await getAllSchoolTimesAndLessons();
 		const currentDay = data[day - 1];
 		for (const lesson of currentDay) {
-			const job = cron.schedule(`${getMinforCron(lesson.time)} ${getHourforCron(lesson.time)} * * *`, async () => {
+			const job = cron.schedule(getCrons(lesson.time), async () => {
 				await (client.channels.cache.get('1021885044102529024') as TextBasedChannel).send(`<@1021468029726494751> ${lesson.lesson}`);
 				job.stop();
 			}, { timezone: 'Europe/Tallinn' });
