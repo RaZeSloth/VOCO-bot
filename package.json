@@ -5,12 +5,12 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "4.1.2",
-    "discord.js": "^14.3.0",
-    "dotenv": "^16.0.2",
+    "discord.js": "^14.6.0",
+    "dotenv": "^16.0.3",
     "glob": "^8.0.3",
     "node-cron": "^3.0.2",
-    "puppeteer": "^18.2.0",
-    "typescript": "^4.8.3"
+    "puppeteer": "^18.2.1",
+    "typescript": "^4.8.4"
   },
   "scripts": {
     "lint": "yarn run eslint .",
@@ -19,14 +19,14 @@
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",
-    "@types/node": "^18.7.18",
+    "@types/node": "^18.8.4",
     "@types/node-cron": "^3.0.4",
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.38.0",
-    "eslint": "^8.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.40.0",
+    "@typescript-eslint/parser": "^5.40.0",
+    "eslint": "^8.25.0",
     "eslint-config-standard-with-typescript": "^23.0.0",
     "eslint-plugin-import": "^2.25.2",
-    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-n": "^15.3.0",
     "eslint-plugin-promise": "^6.0.0"
   }
 }
