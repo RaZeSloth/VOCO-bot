@@ -8,7 +8,7 @@ const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }): Promise<lesson[]> => {
 	const lesson_array: string[] = [];
 	const times_array: string[] = [];
-	const b = await Puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+	const b = await Puppeteer.launch({ headless: true });
 	const page = await b.newPage();
 	await page.goto('https://voco.ee/tunniplaan/');
 	await page.select('#course_select', '1692');
@@ -55,7 +55,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 };
 
 const getMinforCron = (time: string) => {
-	return parseInt(time.split('-')[0].trim().split(':')[1]) === 0 ? 45 : parseInt(time) > 15 ? parseInt(time.split('-')[0].trim().split(':')[1]) - 15 : 60 - (15 - parseInt(time.split('-')[0].trim().split(':')[1]));
+	return parseInt(time.split('-')[0].trim().split(':')[1]) === 0 ? 45 : parseInt(time) > 15 ? parseInt(time.split('-')[0].trim().split(':')[1]) - 15 : 60 - (parseInt(time.split('-')[0].trim().split(':')[1]));
 };
 
 const getHourforCron = (time: string) => {
