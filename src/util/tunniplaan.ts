@@ -77,7 +77,7 @@ const startCronJobs = async () => {
 		for (const lesson of currentDay) {
 			const lesson_object_cron = getCrons(lesson.time);
 			const job = cron.schedule(lesson_object_cron.string, async () => {
-				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send(`<@1029335363040329749> ${lesson.lesson}`);
+				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send(`<@&1029335363040329749> ${lesson.lesson}`);
 				job.stop();
 			}, { timezone: 'Europe/Tallinn' });
 			cron_jobs.add(job);
