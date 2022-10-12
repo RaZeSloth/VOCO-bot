@@ -62,11 +62,14 @@ const getHourforCron = (time: string) => {
 	return parseInt(time.split('-')[0].trim().split(':')[0]);
 };
 
-const getCrons = (time: string) => {
+const getCrons = (time: string, eating_time?: boolean) => {
 	const date = new Date();
 	date.setHours(getHourforCron(time));
 	date.setMinutes(getMinforCron(time));
 	date.setMinutes(date.getMinutes() - 15);
+	if (eating_time) {
+		date.setMinutes(date.getMinutes() + 35);
+	}
 	return { string: `${date.getMinutes()} ${date.getHours()} * * *`, date };
 };
 const startCronJobs = async () => {
@@ -75,7 +78,7 @@ const startCronJobs = async () => {
 		const data = await getAllSchoolTimesAndLessons();
 		const currentDay = data[day - 1];
 		for (const lesson of currentDay) {
-			const lesson_object_cron = getCrons(lesson.time);
+			const lesson_object_cron = getCrons(lesson.time, currentDay.indexOf(lesson) === 2);
 			const job = cron.schedule(lesson_object_cron.string, async () => {
 				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send(`<@&1029335363040329749> ${lesson.lesson}`);
 				job.stop();
