@@ -4,6 +4,7 @@ import { green, yellow } from 'chalk';
 import { lesson } from './interfaces';
 import { client } from '..';
 import { GuildTextBasedChannel } from 'discord.js';
+import { getFoodForToday } from './functions';
 const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }): Promise<lesson[]> => {
 	const lesson_array: string[] = [];
@@ -86,12 +87,17 @@ const startCronJobs = async () => {
 			cron_jobs.add(job);
 			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson_object_cron.date.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 		}
+		cron.schedule('45 11 * * *', async () => {
+			const food = await getFoodForToday();
+			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: 'Söömine! 12:00 - 12:30', files: [food] });
+		}, { timezone: 'Europe/Tallinn' });
+		console.log(green('Food at 11:45 is scheduled'));
 	} else {
 		console.log(yellow('Weekend day, skipping...'));
 	}
 };
 
-export = async () => {
+export ={ init: async () => {
 	await startCronJobs();
 	cron.schedule('0 0 * * *', async () => {
 		cron_jobs.forEach(job => job.stop());
@@ -99,5 +105,4 @@ export = async () => {
 		await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).bulkDelete(100).catch(() => null);
 		await startCronJobs();
 	}, { timezone: 'Europe/Tallinn' });
-};
-
+}, getAllSchoolTimesAndLessons };
