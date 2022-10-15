@@ -1,4 +1,4 @@
-import { ActionRowBuilder, AttachmentBuilder, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
 import { command, lesson } from '../util/interfaces';
 const days = [
 	{
