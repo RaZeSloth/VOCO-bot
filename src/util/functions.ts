@@ -8,7 +8,7 @@ const useModal: (sourceInteraction: CommandInteraction| ContextMenuCommandIntera
 
 const getFoodForToday = async (): Promise<Buffer> => {
 	const b = await Puppeteer.launch({ headless: true, defaultViewport: { width: 1920, height: 700 } });
-	const apiURL = 'https://siseveeb.voco.ee/veebivormid/sookla_menuu';
+	const apiURL = 'https://siseveeb.voco.ee/veebivormid/restorani_menuu';
 	const page = await b.newPage();
 	await page.goto(apiURL);
 	await page.evaluate(() => {
