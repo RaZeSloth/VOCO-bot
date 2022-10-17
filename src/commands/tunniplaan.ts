@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, codeBlock, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
 import { command, lesson } from '../util/interfaces';
 const days = [
 	{
@@ -23,13 +23,13 @@ const days = [
 	},
 ];
 export = {
-	name: 'tunniplaan',
+	name: 'tunniplaan_test',
 	description: 'Näe nädalate tunniplaani',
 	async execute(client, int) {
 		await int.deferReply({ ephemeral: true });
 		const day = new Date().getDay();
 		const date = Date.now();
-		let lesson_array: lesson[] = [];
+		let lesson_array: lesson[][] = [];
 		let embed: EmbedBuilder;
 		const selectMenu = new SelectMenuBuilder()
 			.setCustomId(`tunniplaan_${date}`)
@@ -44,7 +44,7 @@ export = {
 				.setColor('#000000')
 				.setDescription('See on tänane tunniplaan');
 			for (const lesson of lessons[day - 1]) {
-				embed.addFields({ name: lesson.time, value: lesson.lesson });
+				embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `R1: ${lesson.group_1}\n\nR2: ${lesson.group_2}`) });
 			}
 		} else {
 			const lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true });
@@ -54,7 +54,7 @@ export = {
 				.setColor('#000000')
 				.setDescription('See on järgmise nädala esmaspäeva tunniplaan');
 			for (const lesson of lessons[0]) {
-				embed.addFields({ name: lesson.time, value: lesson.lesson });
+				embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `R1: ${lesson.group_1}\n\nR2: ${lesson.group_2}`) });
 			}
 
 		}
@@ -68,7 +68,7 @@ export = {
 				.setColor('#000000')
 				.setDescription(`See on ${currentDay >= 1 && currentDay <= 5 ? '' : 'järgmise'} ${days[day - 1].label.toLowerCase()}${day !== 5 ? 'ase' : 'se'} päeva tunniplaan`);
 			for (const lesson of lesson_array[day - 1]) {
-				embed.addFields({ name: lesson.time, value: lesson.lesson });
+				embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `R1: ${lesson.group_1}\n\nR2: ${lesson.group_2}`) });
 			}
 			await i.update({ embeds: [embed] });
 		});
