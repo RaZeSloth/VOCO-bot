@@ -9,5 +9,9 @@ type partial_lesson = { lesson: string | null; time: string | null; }[];
 type raw_lesson = { time: string; lesson: string; };
 type lesson = { time?: string; special_lesson?: string; group_1?: string, group_2?: string };
 
+enum week_type {
+	'this_week' = 0,
+	'next_week' = 1,
+}
 
-export { command, lesson, partial_lesson, raw_lesson };
+export { command, lesson, partial_lesson, raw_lesson, week_type };

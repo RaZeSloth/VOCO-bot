@@ -1,7 +1,7 @@
 import Puppeteer from 'puppeteer';
 import cron, { ScheduledTask } from 'node-cron';
 import { green, yellow } from 'chalk';
-import { lesson, partial_lesson, raw_lesson } from './interfaces';
+import { lesson, partial_lesson, raw_lesson, week_type } from './interfaces';
 import { client } from '..';
 import { EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
 import { getFoodForToday } from './functions';
@@ -121,6 +121,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 			m = parseInt(les_object_arr[i].time);
 		}
 	}
+	client.cache.set(options?.getNextWeek ? week_type.next_week : week_type.this_week, fil_times);
 	return fil_times;
 };
 

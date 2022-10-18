@@ -1,5 +1,6 @@
-import { ActionRowBuilder, codeBlock, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
-import { command, lesson } from '../util/interfaces';
+import { ActionRowBuilder, codeBlock, Collection, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
+import { command, lesson, week_type } from '../util/interfaces';
+
 const days = [
 	{
 		label: 'Esmaspäev',
@@ -37,7 +38,13 @@ export = {
 			.addOptions(days);
 
 		if (day >= 1 && day <= 5) {
-			const lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons();
+			let lessons: lesson[][];
+			if (client.cache.has(week_type.this_week)) {
+				lessons = client.cache.get(week_type.this_week);
+			} else {
+				lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons();
+				client.cache.set(week_type.this_week, lessons);
+			}
 			lesson_array = lessons;
 			embed = new EmbedBuilder()
 				.setTitle('Tunniplaan')
@@ -47,7 +54,12 @@ export = {
 				embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `R1: ${lesson.group_1}\n\nR2: ${lesson.group_2}`) });
 			}
 		} else {
-			const lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true });
+			let lessons: lesson[][];
+			if (client.cache.has(week_type.next_week)) {
+				lessons = client.cache.get(week_type.next_week);
+			} else {
+				lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true });
+			}
 			lesson_array = lessons;
 			embed = new EmbedBuilder()
 				.setTitle('Tunniplaan')
