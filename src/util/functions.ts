@@ -7,14 +7,10 @@ const useModal: (sourceInteraction: CommandInteraction| ContextMenuCommandIntera
 };
 
 const getFoodForToday = async (): Promise<Buffer> => {
-	const b = await Puppeteer.launch({ headless: true, defaultViewport: { width: 1920, height: 700 } });
+	const b = await Puppeteer.launch({ headless: true, defaultViewport: { width: 1920, height: 1080 } });
 	const apiURL = 'https://siseveeb.voco.ee/veebivormid/restorani_menuu';
 	const page = await b.newPage();
 	await page.goto(apiURL);
-	await page.evaluate(() => {
-		const footer = document.querySelector('footer');
-		footer.style.display = 'none';
-	});
 	const buff = await page.screenshot();
 	b.close();
 	return buff as Buffer;
