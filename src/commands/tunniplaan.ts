@@ -1,4 +1,4 @@
-import { ActionRowBuilder, codeBlock, Collection, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, codeBlock, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
 import { command, lesson, week_type } from '../util/interfaces';
 
 const days = [

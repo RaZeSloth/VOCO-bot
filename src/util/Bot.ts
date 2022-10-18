@@ -4,7 +4,7 @@ import { command, lesson } from './interfaces';
 
 class VocoBot extends Client {
 	commands: Collection<string, command>;
-    cache: Collection<number, lesson[][]>;
+	cache: Collection<number, lesson[][]>;
 	constructor() {
 		super({ intents: [GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds] });
 		this.commands = new Collection();
