@@ -157,7 +157,7 @@ const startCronJobs = async () => {
 				if (lesson.special_lesson) {
 					notification_embed.setDescription(lesson.special_lesson);
 				} else {
-					notification_embed.addFields({ name: 'Grupp 1', value: lesson.group_1 }, { name: 'Grupp 2', value: lesson.group_2 });
+					notification_embed.setDescription(`${lesson.group_1}\n----------------------------------\n${lesson.group_2}`);
 				}
 				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1029335363040329749>', embeds: [notification_embed] });
 				job.stop();
