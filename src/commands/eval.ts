@@ -1,40 +1,101 @@
-import { exec } from 'child_process';
-import { ActionRowBuilder, ChatInputCommandInteraction, codeBlock, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { inspect } from 'util';
+import { VocoBot } from '../util/Bot';
 import { useModal } from '../util/functions';
 import { command } from '../util/interfaces';
 
 export = {
-	name: 'bash',
-	description: 'Reversitud bash shell boti hosti (Mõeldud ainult Mikule)',
-	async execute(client, int: ChatInputCommandInteraction) {
+	name: 'eval',
+	description: 'JavaScripti eval funktsioon',
+	options: [
+		{
+			name: 'nähtavus',
+			type: ApplicationCommandOptionType.String,
+			description: 'Kas näidata tulemust või mitte (Kui ei ole valitud, siis on nähtav)',
+			choices: [
+				{
+					name: 'nähtav',
+					value: 'visible',
+				},
+				{
+					name: 'peidetud',
+					value: 'hidden',
+				},
+			],
+
+		},
+	],
+	async execute(client: VocoBot, int: ChatInputCommandInteraction) {
 		if (int.user.id !== '777474453114191882') {
-			return int.reply({ ephemeral: true, content: 'Ainult Mikule mõeldud kommand.' });
+			return int.reply({ ephemeral: true, content: 'ඞ' });
 		}
 		const d = Date.now();
+		const deleteButton = new ButtonBuilder()
+			.setCustomId('del')
+			.setEmoji('883358104320868353')
+			.setStyle(ButtonStyle.Danger);
 		const modal = new ModalBuilder()
-			.setComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder().setCustomId('code').setLabel('Script').setRequired(true).setStyle(TextInputStyle.Paragraph)))
-			.setTitle('Reverse shelli input 📥')
+			.setComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder().setCustomId('code').setLabel('Code').setRequired(true).setStyle(TextInputStyle.Paragraph)))
+			.setTitle('Eval modal 📥')
 			.setCustomId(`eval_${d}`);
 		const editModalInt = await useModal(int, modal, 20 * 60 * 60 * 1000);
 		if (!editModalInt) return;
 		const code = editModalInt.fields.getTextInputValue('code');
+		const embed = new EmbedBuilder();
 
 
 		try {
-			exec(code, (error, stdout, stderr) => {
-				if (error) {
-					editModalInt.reply({ embeds: [new EmbedBuilder().setTitle('Error (failure)').setColor('#000000').setDescription(codeBlock(error.message))] });
-					return;
+			let evaled = await eval(code),
+				output;
+			if (evaled?.constructor.name === 'Promise') {
+				output = '📤 Output (Promise)';
+			} else {
+				output = '📤 Output';
+			}
+			if (inspect(evaled).length > 800) {
+				evaled = inspect(evaled).substring(0, 800) + '...';
+			}
+			console.log(int.options.getString('nähtavus'));
+			const hidden = int.options.getString('nähtavus') === 'hidden';
+			embed
+				.addFields({ name: '📥 Input', value: `\`\`\`\n${(code.length > 1024) ? code.substring(0, 990) + '...' : code}\n\`\`\`` }, { name: output, value: `\`\`\`js\n${evaled}\n\`\`\`` }, { name: 'Status', value: 'Success' })
+				.setColor('#000000');
+			const msg = await editModalInt.reply({ embeds: [embed], components: hidden ? [] : [new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton)], fetchReply: true, ephemeral: hidden });
+			if (!hidden) {
+				const inter = await msg.awaitMessageComponent({ componentType: ComponentType.Button, filter: (m) => int.user.id === m.user.id }).catch(() => null);
+				if (inter) {
+					if (inter.customId === 'del') {
+						await inter.deferUpdate().catch(() => null);
+						await msg.delete().catch(() => null);
+					} else {
+						return;
+					}
 				}
-				if (stderr) {
-					editModalInt.reply({ embeds: [new EmbedBuilder().setTitle('Stderr (failure)').setColor('#000000').setDescription(codeBlock(stderr))] });
-					return;
-				}
-				editModalInt.reply({ embeds: [new EmbedBuilder().setTitle('Stdout (success)').setColor('#000000').setDescription(codeBlock(stdout))] });
-			});
+			}
 			return;
 		} catch (e) {
-			editModalInt.reply({ content: e.toString() }).catch(() => null);
+			const hidden = int.options.getString('nähtavus') === 'hidden';
+
+			embed
+				.addFields(
+					{ name: '📥 Input', value: `\`\`\`\n${(code.length > 1024) ? code.substring(0, 990) + '...' : code}\n\`\`\`` },
+					{ name: '📤 Output', value: `\`\`\`js\n${(e.length > 1024) ? e.substring(0, 990) + '...' : e.message}\n\`\`\`` },
+					{ name: 'Status', value: 'Error' },
+				)
+				.setColor('#000000');
+			const msg = await editModalInt.reply({ embeds: [embed], components: hidden ? [] : [new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton)], fetchReply: true, ephemeral: hidden });
+			if (!hidden) {
+				const inter = await msg.awaitMessageComponent({ componentType: ComponentType.Button, filter: (m) => int.user.id === m.user.id }).catch(() => null);
+				if (inter) {
+					if (inter.customId === 'del') {
+						await inter.deferUpdate().catch(() => null);
+						await msg.delete().catch(() => null);
+					} else {
+						return;
+					}
+				}
+			}
+
 			return;
 		}
 	},
