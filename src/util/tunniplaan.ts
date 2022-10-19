@@ -3,7 +3,8 @@ import cron, { ScheduledTask } from 'node-cron';
 import { green, yellow } from 'chalk';
 import { lesson, partial_lesson, raw_lesson, week_type } from './interfaces';
 import { client } from '..';
-import { codeBlock, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
+import { codeBlock, EmbedBuilder, GuildTextBasedChannel, time, TimestampStyles } from 'discord.js';
+
 import { getFoodForToday } from './functions';
 const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons_old = async (options?: { getNextWeek?: boolean }): Promise<partial_lesson[]> => {
@@ -152,7 +153,7 @@ const startCronJobs = async () => {
 			const lesson_object_cron = getCrons(lesson.time, currentDay.indexOf(lesson) === 2);
 			const job = cron.schedule(lesson_object_cron.string, async () => {
 				const notification_embed = new EmbedBuilder()
-					.setTitle(lesson.time)
+					.setTitle(lesson.time + ` (${time(lesson_object_cron.date, TimestampStyles.RelativeTime)})`)
 					.setColor('#000000');
 				if (lesson.special_lesson) {
 					notification_embed.setDescription(codeBlock(lesson.special_lesson));
