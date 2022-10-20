@@ -152,6 +152,7 @@ const startCronJobs = async () => {
 		for (const lesson of currentDay) {
 			const lesson_object_cron = getCrons(lesson.time, currentDay.indexOf(lesson) === 2);
 			const job = cron.schedule(lesson_object_cron.string, async () => {
+				lesson_object_cron.date.setMinutes(lesson_object_cron.date.getMinutes() + 15);
 				const notification_embed = new EmbedBuilder()
 					.setTitle(lesson.time + ` (${time(lesson_object_cron.date, TimestampStyles.RelativeTime)})`)
 					.setColor('#000000');
