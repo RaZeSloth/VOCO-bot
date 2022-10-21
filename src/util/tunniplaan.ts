@@ -134,10 +134,16 @@ const getHourforCron = (time: string) => {
 	return parseInt(time.split('-')[0].trim().split(':')[0]);
 };
 
-const getCrons = (time: string, eating_time?: boolean) => {
+const getCrons = (time: string, eating_time?: boolean, getRaw?: true) => {
 	const date = new Date();
 	date.setHours(getHourforCron(time));
 	date.setMinutes(getMinforCron(time));
+	if (getRaw) {
+		if (eating_time) {
+			date.setMinutes(date.getMinutes() + 35);
+		}
+		return { date, cron: `${date.getMinutes()} ${date.getHours()} * * *` };
+	}
 	date.setMinutes(date.getMinutes() - 15);
 	if (eating_time) {
 		date.setMinutes(date.getMinutes() + 35);
@@ -152,10 +158,9 @@ const startCronJobs = async () => {
 		for (const lesson of currentDay) {
 			const lesson_object_cron = getCrons(lesson.time, currentDay.indexOf(lesson) === 2);
 			const job = cron.schedule(lesson_object_cron.string, async () => {
-				const time_until_les = new Date(lesson_object_cron.date);
-				time_until_les.setMinutes(time_until_les.getMinutes() + currentDay.indexOf(lesson) === 2 ? 35 : 15);
+				const time_until_les = getCrons(lesson.time, currentDay.indexOf(lesson) === 2, true);
 				const notification_embed = new EmbedBuilder()
-					.setTitle(lesson.time + ` (${time(time_until_les, TimestampStyles.RelativeTime)})`)
+					.setTitle(lesson.time + ` (${time(time_until_les.date, TimestampStyles.RelativeTime)})`)
 					.setColor('#000000');
 				if (lesson.special_lesson) {
 					notification_embed.setDescription(codeBlock(lesson.special_lesson));
