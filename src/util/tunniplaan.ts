@@ -60,7 +60,8 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 	const b = await Puppeteer.launch({ headless: true });
 	const page = await b.newPage();
 	const raw_lessons_objects: raw_lesson[] = [];
-	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=1692&nadal=${!options?.getNextWeek ? new Date().toLocaleDateString([], { day: '2-digit', month: '2-digit', year: 'numeric' }).replaceAll('/', '.') : new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString([], { day: '2-digit', month: '2-digit', year: 'numeric' }).replaceAll('/', '.')}`;
+	const date_data = new Date(options?.getNextWeek ? new Date().getTime() + 7 * 24 * 60 * 60 * 1000 : new Date().getTime());
+	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=1692&nadal=${date_data.getDate()}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
 	await page.goto(url);
 	await new Promise(r => setTimeout(r, 2000));
 	const contents = await page.$$('.fc-content');
