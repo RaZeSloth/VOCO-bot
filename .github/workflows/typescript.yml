@@ -1,7 +1,7 @@
-name: ESLint
+name: TypeScript
 on: [push]
 jobs:
-  eslint:
+  tsc:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -9,4 +9,4 @@ jobs:
         with:
           node-version: 17
       - run: yarn install
-      - run: yarn lint --format=compact
+      - run: yarn run tsc
