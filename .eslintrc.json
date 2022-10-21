@@ -20,7 +20,7 @@
         "project": ["./tsconfig.json"]
     },
     "rules": {
-		"no-warning-comments": ["warn", { "terms": ["todo", "fixme"], "location": "anywhere" }],
+		"no-warning-comments": ["warn", { "terms": ["todo", "fixme", "wip"], "location": "anywhere" }],
 		"arrow-spacing": ["warn", { "before": true, "after": true }],
         "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
 		"comma-dangle": ["error", "always-multiline"],
