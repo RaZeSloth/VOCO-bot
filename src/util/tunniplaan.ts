@@ -156,6 +156,7 @@ const startCronJobs = async () => {
 	if (day >= 1 && day <= 5) {
 		const data = await getAllSchoolTimesAndLessons();
 		const currentDay = data[day - 1];
+		if (!currentDay) return;
 		for (const lesson of currentDay) {
 			const lesson_object_cron = getCrons(lesson.time, currentDay.indexOf(lesson) === 2);
 			const job = cron.schedule(lesson_object_cron.string, async () => {

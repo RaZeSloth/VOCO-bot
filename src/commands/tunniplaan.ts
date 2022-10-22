@@ -24,7 +24,7 @@ const days = [
 	},
 ];
 export = {
-	name: 'tunniplaan',
+	name: 'tunniplaan_test',
 	description: 'Näe nädalate tunniplaani',
 	async execute(client, int) {
 		await int.deferReply({ ephemeral: true });
@@ -50,8 +50,10 @@ export = {
 				.setTitle('Tunniplaan')
 				.setColor('#000000')
 				.setDescription('See on tänane tunniplaan');
-			for (const lesson of lessons[day - 1]) {
-				embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+			if (lessons[day - 1]) {
+				for (const lesson of lessons[day - 1]) {
+					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+				}
 			}
 		} else {
 			let lessons: lesson[][];
@@ -79,8 +81,10 @@ export = {
 				.setTitle('Tunniplaan')
 				.setColor('#000000')
 				.setDescription(`See on ${currentDay >= 1 && currentDay <= 5 ? '' : 'järgmise'} ${days[day - 1].label.toLowerCase()}${day !== 5 ? 'ase' : 'se'} päeva tunniplaan`);
-			for (const lesson of lesson_array[day - 1]) {
-				embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+			if (lesson_array[day - 1]) {
+				for (const lesson of lesson_array[day - 1]) {
+					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+				}
 			}
 			await i.update({ embeds: [embed] });
 		});
