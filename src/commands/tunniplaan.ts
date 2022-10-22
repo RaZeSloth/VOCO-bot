@@ -24,7 +24,7 @@ const days = [
 	},
 ];
 export = {
-	name: 'tunniplaan_test',
+	name: 'tunniplaan',
 	description: 'Näe nädalate tunniplaani',
 	async execute(client, int) {
 		await int.deferReply({ ephemeral: true });
