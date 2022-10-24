@@ -9,7 +9,7 @@
     "dotenv": "^16.0.3",
     "glob": "^8.0.3",
     "node-cron": "^3.0.2",
-    "puppeteer": "^19.0.0",
+    "puppeteer": "^19.1.1",
     "typescript": "^4.8.4"
   },
   "scripts": {
@@ -19,11 +19,11 @@
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",
-    "@types/node": "^18.11.2",
+    "@types/node": "^18.11.4",
     "@types/node-cron": "^3.0.4",
-    "@typescript-eslint/eslint-plugin": "^5.40.1",
-    "@typescript-eslint/parser": "^5.40.1",
-    "eslint": "^8.25.0",
+    "@typescript-eslint/eslint-plugin": "^5.41.0",
+    "@typescript-eslint/parser": "^5.41.0",
+    "eslint": "^8.26.0",
     "eslint-config-standard-with-typescript": "^23.0.0",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-n": "^15.3.0",
