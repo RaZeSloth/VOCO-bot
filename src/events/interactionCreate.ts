@@ -4,7 +4,7 @@ import { VocoBot } from '../util/Bot';
 export = async (client: VocoBot, int: Interaction) => {
 	if (int.isChatInputCommand()) {
 		const command = client.commands.get(int.commandName);
-		if (command) return;
+		if (!command) return;
 		try {
 			await command.execute(client, int);
 		} catch (e) {
