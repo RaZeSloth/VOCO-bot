@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Client, Collection, EmbedBuilder, GatewayIntentBits } from 'discord.js';
+import { ChatInputCommandInteraction, Client, codeBlock, Collection, EmbedBuilder, GatewayIntentBits, GuildTextBasedChannel } from 'discord.js';
 import path from 'path';
 import { colors, command, lesson } from './interfaces';
 import dt from 'distube';
@@ -31,6 +31,9 @@ class VocoBot extends Client {
 		});
 		distube.on('addList', (queue, playlist) => {
 			(playlist.metadata as { i: ChatInputCommandInteraction }).i.followUp({ embeds: [new EmbedBuilder().setDescription(`Lisan playlisti \`${playlist.name}\` - \`${playlist.songs.length}\` laulu`).setColor(colors.embed_color)] });
+		});
+		distube.on('error', (chan, err) => {
+			(this.channels.cache.get('1035257987364827156') as GuildTextBasedChannel).send({ embeds: [new EmbedBuilder().setDescription(codeBlock(err.message)).setColor(colors.embed_color), new EmbedBuilder().setDescription(codeBlock(err.stack)).setColor(colors.embed_color)] });
 		});
 
 		this.music = distube;

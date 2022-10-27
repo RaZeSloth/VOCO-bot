@@ -17,10 +17,7 @@ export = {
 		const muusika = int.options.getString('muusika');
 		if (!int.inCachedGuild()) return;
 		await int.deferReply({ ephemeral: false });
-		try {
-			await client.music.play(int.member?.voice.channel, muusika, { metadata: { i: int } });
-		} catch (e) {
-			int.followUp({ content: `Midagi läks valesti!\n\n${e}` });
-		}
+		await client.music.play(int.member?.voice.channel, muusika, { metadata: { i: int } });
+
 	},
 } as command
