@@ -175,7 +175,7 @@ const startCronJobs = async () => {
 			cron_jobs.add(job);
 			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson_object_cron.date.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 		}
-		cron.schedule('45 11 * * *', async () => {
+		const food = cron.schedule('45 11 * * *', async () => {
 			const embed = new EmbedBuilder()
 				.setTitle('Söömine! 12:00 - 12:30')
 				.setColor('#000000');
@@ -183,6 +183,7 @@ const startCronJobs = async () => {
 			embed.setImage('attachment://sook.png');
 			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ embeds: [embed], files: [new AttachmentBuilder(food, { name: 'sook.png' })] });
 		}, { timezone: 'Europe/Tallinn' });
+		cron_jobs.add(food);
 		console.log(green('Food at 11:45 is scheduled'));
 	} else {
 		console.log(yellow('Weekend day, skipping...'));
