@@ -190,7 +190,7 @@ const startCronJobs = async () => {
 	}
 };
 
-export ={ init: async () => {
+export = { init: async () => {
 	await startCronJobs();
 	cron.schedule('0 0 * * *', async () => {
 		cron_jobs.forEach(job => job.stop());
