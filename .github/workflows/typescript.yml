@@ -8,5 +8,5 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 17
-      - run: yarn install
+      - run: yarn install --update-checksums
       - run: yarn run tsc
