@@ -75,36 +75,43 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 	}
 	const les_object_arr: lesson[] = [];
 	for (const partial_lesson of raw_lessons_objects) {
-		if (partial_lesson.lesson.includes('R1')) {
-			// console.log({ before: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1], after: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1] })
-			// console.log({ currentLessonTime: partial_lesson.time, beforeLessonTime: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1].time, afterLessonTime: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].time });
-			const currentLessonTime = partial_lesson.time;
-			const beforeLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1].time;
-			const afterLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].time;
-			if (currentLessonTime === afterLessonTime) {
-				les_object_arr.push({ group_1: partial_lesson.lesson, group_2: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson, time: partial_lesson.time });
+		const currentLessonTime = partial_lesson.time;
+		const beforeLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1]?.time;
+		const afterLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1]?.time;
+		if (currentLessonTime === afterLessonTime) {
+			const obj: lesson = { time: partial_lesson.time, lesson_count: 0 };
+			if (partial_lesson.lesson.includes('R1')) {
+				obj.group_1 = partial_lesson.lesson;
+				obj.group_2 = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson;
+				obj.lesson_count += 2;
 			}
-			if (currentLessonTime === beforeLessonTime) {
-				les_object_arr.push({ group_1: partial_lesson.lesson, group_2: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1].lesson, time: partial_lesson.time });
+			if (partial_lesson.lesson.includes('R2')) {
+				obj.group_2 = partial_lesson.lesson;
+				obj.group_1 = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson;
+				obj.lesson_count += 2;
 			}
-			if (currentLessonTime !== beforeLessonTime && currentLessonTime !== afterLessonTime) les_object_arr.push({ group_1: partial_lesson.lesson, group_2: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].time === partial_lesson.time ? raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson : raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1].lesson, time: partial_lesson.time });
+			if (!obj.group_1 && !obj.group_2) {
+				obj.group_1 = partial_lesson.lesson;
+				obj.group_2 = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson;
+				obj.lesson_count += 2;
+			}
+			les_object_arr.push(obj);
 		}
-		if (!partial_lesson.lesson.includes('R1') && !partial_lesson.lesson.includes('R2')) {
-			const currentLessonTime = partial_lesson.time;
-			const beforeLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1]?.time;
-			const afterLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1]?.time;
-			if (currentLessonTime === afterLessonTime) {
-				les_object_arr.push({ group_1: partial_lesson.lesson, group_2: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson, time: partial_lesson.time });
-			}
-			if (currentLessonTime === beforeLessonTime) {
-				les_object_arr.push({ group_1: partial_lesson.lesson, group_2: raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1].lesson, time: partial_lesson.time });
-			}
-
-			les_object_arr.push({ special_lesson: partial_lesson.lesson, time: partial_lesson.time });
-		}
-		if (partial_lesson.lesson.includes('R2')) {
+		if (currentLessonTime === beforeLessonTime) {
 			continue;
 		}
+		if (currentLessonTime !== beforeLessonTime && currentLessonTime !== afterLessonTime) {
+			const obj: lesson = { time: partial_lesson.time, lesson_count: 1 };
+			obj.special_lesson = partial_lesson.lesson;
+			les_object_arr.push(obj);
+		}
+
+	}
+	const amount_of_lessons_per_day: number[] = [];
+	const day_html_collection_of_children = (await page.$$('.fc-content-col'));
+	for (const day of day_html_collection_of_children) {
+		const amount_of_lessons = await page.evaluate(e => e.children[1].children.length, day);
+		amount_of_lessons_per_day.push(amount_of_lessons);
 	}
 	let m: number;
 	let c: number;
@@ -115,8 +122,13 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 			fil_times[0] = [les_object_arr[i]];
 			c = i;
 		} else if (m < parseInt(les_object_arr[i].time)) {
-			fil_times[c].push(les_object_arr[i]);
-			m = parseInt(les_object_arr[i].time);
+			if (amount_of_lessons_per_day[c] === fil_times[c].reduce((a, b) => a + b.lesson_count, 0)) {
+				c++;
+				fil_times[c] = [les_object_arr[i]];
+			} else {
+				fil_times[c].push(les_object_arr[i]);
+				m = parseInt(les_object_arr[i].time);
+			}
 		} else if (m > parseInt(les_object_arr[i].time)) {
 			c++;
 			fil_times[c] = [les_object_arr[i]];
