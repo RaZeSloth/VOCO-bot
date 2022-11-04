@@ -147,11 +147,12 @@ const getHourforCron = (time: string) => {
 	return parseInt(time.split('-')[0].trim().split(':')[0]);
 };
 
-const getCrons = (time: string, eating_time?: boolean, getRaw?: true) => {
+const getCrons = (options: { lesson_data: lesson, getRawDate?: true }) => {
 	const date = new Date();
-	date.setHours(getHourforCron(time));
-	date.setMinutes(getMinforCron(time));
-	if (getRaw) {
+	date.setHours(getHourforCron(options.lesson_data.time));
+	date.setMinutes(getMinforCron(options.lesson_data.time));
+	const eating_time = options.lesson_data?.special_lesson?.includes('Söömine') || options.lesson_data?.group_1?.includes('Söömine') || options.lesson_data?.group_2?.includes('Söömine') || false;
+	if (options?.getRawDate) {
 		if (eating_time) {
 			date.setMinutes(date.getMinutes() + 35);
 		}
@@ -170,9 +171,9 @@ const startCronJobs = async () => {
 		const currentDay = data[day - 1];
 		if (!currentDay) return;
 		for (const lesson of currentDay) {
-			const lesson_object_cron = getCrons(lesson.time, currentDay.indexOf(lesson) === 2);
+			const lesson_object_cron = getCrons({ lesson_data: lesson });
 			const job = cron.schedule(lesson_object_cron.string, async () => {
-				const time_until_les = getCrons(lesson.time, currentDay.indexOf(lesson) === 2, true);
+				const time_until_les = getCrons({ lesson_data: lesson, getRawDate: true });
 				const notification_embed = new EmbedBuilder()
 					.setTitle(lesson.time + ` (${time(time_until_les.date, TimestampStyles.RelativeTime)})`)
 					.setColor('#000000');
