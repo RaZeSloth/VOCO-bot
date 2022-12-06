@@ -5,17 +5,17 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/opus": "^0.9.0",
-    "@discordjs/voice": "^0.13.0",
+    "@discordjs/voice": "^0.14.0",
     "chalk": "4.1.2",
-    "discord.js": "^14.6.0",
+    "discord.js": "^14.7.1",
     "distube": "^4.0.4",
     "dotenv": "^16.0.3",
     "glob": "^8.0.3",
     "libsodium-wrappers": "^0.7.10",
     "node-cron": "^3.0.2",
-    "puppeteer": "^19.2.2",
+    "puppeteer": "^19.3.0",
     "sodium": "^3.0.2",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.3"
   },
   "scripts": {
     "lint": "yarn run eslint .",
@@ -24,14 +24,14 @@
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",
-    "@types/node": "^18.11.9",
+    "@types/node": "^18.11.11",
     "@types/node-cron": "^3.0.6",
-    "@typescript-eslint/eslint-plugin": "^5.43.0",
-    "@typescript-eslint/parser": "^5.43.0",
-    "eslint": "^8.27.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.1",
+    "@typescript-eslint/parser": "^5.45.1",
+    "eslint": "^8.29.0",
     "eslint-config-standard-with-typescript": "^23.0.0",
     "eslint-plugin-import": "^2.25.2",
-    "eslint-plugin-n": "^15.5.1",
+    "eslint-plugin-n": "^15.6.0",
     "eslint-plugin-promise": "^6.1.1"
   }
 }
