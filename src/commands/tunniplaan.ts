@@ -1,4 +1,4 @@
-import { ActionRowBuilder, codeBlock, ComponentType, EmbedBuilder, SelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandOptionType, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { command, lesson, week_type } from '../util/interfaces';
 
 const days = [
@@ -26,20 +26,33 @@ const days = [
 export = {
 	name: 'tunniplaan',
 	description: 'Näe nädalate tunniplaani',
-	async execute(client, int) {
+	options: [
+		{
+			name: 'järgmine_nädal',
+			description: 'Kas näidata järgmise nädala tunniplaani?',
+			required: false,
+			type: ApplicationCommandOptionType.Boolean,
+		},
+	],
+	async execute(client, int: ChatInputCommandInteraction) {
 		await int.deferReply({ ephemeral: true });
 		const day = new Date().getDay();
 		const date = Date.now();
 		let lesson_array: lesson[][] = [];
 		let embed: EmbedBuilder;
-		const selectMenu = new SelectMenuBuilder()
+		const selectMenu = new StringSelectMenuBuilder()
 			.setCustomId(`tunniplaan_${date}`)
 			.setPlaceholder('Vali päev')
 			.addOptions(days);
 
 		if (day >= 1 && day <= 5) {
 			let lessons: lesson[][];
-			if (client.cache.has(week_type.this_week)) {
+			const next_week_selected: boolean = int.options.getBoolean('järgmine_nädal');
+			if (next_week_selected) {
+				lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true });
+				client.cache.set(week_type.next_week, lessons);
+
+			} else if (client.cache.has(week_type.this_week)) {
 				lessons = client.cache.get(week_type.this_week);
 			} else {
 				lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons();
@@ -49,9 +62,14 @@ export = {
 			embed = new EmbedBuilder()
 				.setTitle('Tunniplaan')
 				.setColor('#000000')
-				.setDescription('See on tänane tunniplaan');
-			if (lessons[day - 1]) {
+				.setDescription(next_week_selected ? 'See on järgmise esmaspäevase päeva tunniplaan' : 'See on tänane tunniplaan');
+			if (lessons[day - 1] && !next_week_selected) {
 				for (const lesson of lessons[day - 1]) {
+					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+				}
+			}
+			if (lessons[0] && next_week_selected) {
+				for (const lesson of lessons[0]) {
 					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
 				}
 			}
@@ -72,15 +90,16 @@ export = {
 			}
 
 		}
-		const r = await int.followUp({ ephemeral: true, embeds: [embed], components: [new ActionRowBuilder<SelectMenuBuilder>().addComponents(selectMenu)] });
-		const col = r.createMessageComponentCollector({ componentType: ComponentType.SelectMenu, time: 20 * 60_000 });
+		const r = await int.followUp({ ephemeral: true, embeds: [embed], components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)] });
+		const col = r.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 20 * 60_000 });
 		col.on('collect', async (i) => {
 			const day = parseInt(i.values[0]);
 			const currentDay = new Date().getDay();
+			const next_week_selected: boolean = int.options.getBoolean('järgmine_nädal');
 			const embed = new EmbedBuilder()
 				.setTitle('Tunniplaan')
 				.setColor('#000000')
-				.setDescription(`See on ${currentDay >= 1 && currentDay <= 5 ? '' : 'järgmise'} ${days[day - 1].label.toLowerCase()}${day !== 5 ? 'ase' : 'se'} päeva tunniplaan`);
+				.setDescription(`See on ${(currentDay >= 1 && currentDay <= 5 && !next_week_selected) ? '' : 'järgmise'} ${days[day - 1].label.toLowerCase()}${day !== 5 ? 'ase' : 'se'} päeva tunniplaan`);
 			if (lesson_array[day - 1]) {
 				for (const lesson of lesson_array[day - 1]) {
 					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
