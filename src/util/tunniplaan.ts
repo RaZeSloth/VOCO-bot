@@ -113,7 +113,32 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 		const amount_of_lessons = await page.evaluate(e => e.children[1].children.length, day);
 		amount_of_lessons_per_day.push(amount_of_lessons);
 	}
-	let m: number;
+	const divideLessons = (lessons: lesson[], lessonsPerDay: number[]): lesson[][] => {
+		const result: lesson[][] = [];
+		let currentIndex = 0;
+		for (let i = 0; i < lessonsPerDay.length; i++) {
+			const currentLessons = [];
+			let lessonsToTake = lessonsPerDay[i];
+			while (lessonsToTake > 0 && currentIndex < lessons.length) {
+				const lessonCount = lessons[currentIndex].lesson_count;
+				if (lessonCount > lessonsToTake) {
+					currentLessons.push({ lesson_count: lessonsToTake, lesson: lessons[currentIndex].special_lesson });
+					currentIndex++;
+					lessonsToTake = 0;
+				} else {
+					currentLessons.push(lessons[currentIndex]);
+					lessonsToTake -= lessonCount;
+					currentIndex++;
+				}
+			}
+			result.push(currentLessons);
+		}
+		return result;
+
+	};
+	const fil_times = divideLessons(les_object_arr, amount_of_lessons_per_day);
+	/* Very ugly bad code, which does not work if the days between have 0 days which is bad, new function fixes that problem by not using this if statements in this commented code. */
+	/* let m: number;
 	let c: number;
 	const fil_times: lesson[][] = [];
 	for (let i = 0; i < les_object_arr.length; i++) {
@@ -134,7 +159,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 			fil_times[c] = [les_object_arr[i]];
 			m = parseInt(les_object_arr[i].time);
 		}
-	}
+	} */
 	client.cache.set(options?.getNextWeek ? week_type.next_week : week_type.this_week, fil_times);
 	return fil_times;
 };
