@@ -94,6 +94,7 @@ export = {
 		const col = r.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 20 * 60_000 });
 		col.on('collect', async (i) => {
 			const day = parseInt(i.values[0]);
+			const updatedSelect = selectMenu.setPlaceholder(`Vali päev (${days[day - 1].label})`);
 			const currentDay = new Date().getDay();
 			const next_week_selected: boolean = int.options.getBoolean('järgmine_nädal');
 			const embed = new EmbedBuilder()
@@ -105,7 +106,7 @@ export = {
 					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
 				}
 			}
-			await i.update({ embeds: [embed] });
+			await i.update({ embeds: [embed], components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(updatedSelect)] });
 		});
 	},
 } as command;
