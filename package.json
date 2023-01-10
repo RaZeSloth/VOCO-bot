@@ -20,7 +20,8 @@
   "scripts": {
     "lint": "yarn run eslint .",
     "lint:fix": "yarn run eslint --fix .",
-    "start": "yarn run tsc && node ."
+    "start": "yarn run tsc && node .",
+    "test": "set -e && yarn run tsc && yarn run lint:fix"
   },
   "devDependencies": {
     "@types/glob": "^8.0.0",
