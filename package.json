@@ -27,7 +27,7 @@
     "@types/glob": "^8.0.0",
     "@types/node": "^18.11.18",
     "@types/node-cron": "^3.0.7",
-    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.1",
     "eslint": "^8.31.0",
     "eslint-config-standard-with-typescript": "^27.0.1",
