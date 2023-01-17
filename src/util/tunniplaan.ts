@@ -86,7 +86,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 	}, []);
 
 	// Old bad code which is not very efficient with Eve's plans on making the lesson schedules...
- 	/* for (const partial_lesson of raw_lessons_objects) {
+	/* for (const partial_lesson of raw_lessons_objects) {
 		const currentLessonTime = partial_lesson.time;
 		const beforeLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1]?.time;
 		const afterLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1]?.time;
