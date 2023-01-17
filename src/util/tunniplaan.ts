@@ -73,26 +73,38 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 			raw_lessons_objects.push(content_object);
 		}
 	}
-	const les_object_arr: lesson[] = [];
-	for (const partial_lesson of raw_lessons_objects) {
+
+	const les_object_arr: lesson[] = raw_lessons_objects.reduce((acc, { time, lesson }) => {
+		const lastLesson = acc[acc.length - 1];
+		if (lastLesson && lastLesson.time === time) {
+			lastLesson.lessons.push(lesson);
+			lastLesson.lesson_count++;
+		} else {
+			acc.push({ time, lesson_count: 1, lessons: [lesson] });
+		}
+		return acc;
+	}, []);
+
+	// Old bad code which is not very efficient with Eve's plans on making the lesson schedules...
+ 	/* for (const partial_lesson of raw_lessons_objects) {
 		const currentLessonTime = partial_lesson.time;
 		const beforeLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1]?.time;
 		const afterLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1]?.time;
 		if (currentLessonTime === afterLessonTime) {
-			const obj: lesson = { time: partial_lesson.time, lesson_count: 0 };
+			const obj: lesson = { time: partial_lesson.time, lesson_count: 0, lessons: [] };
 			if (partial_lesson.lesson.includes('R1')) {
-				obj.group_1 = partial_lesson.lesson;
-				obj.group_2 = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson;
+				obj.lessons.push(partial_lesson.lesson);
+				obj.lessons.push(raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson);
 				obj.lesson_count += 2;
 			}
 			if (partial_lesson.lesson.includes('R2')) {
-				obj.group_2 = partial_lesson.lesson;
-				obj.group_1 = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson;
+				obj.lessons.push(partial_lesson.lesson);
+				obj.lessons.push(raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson);
 				obj.lesson_count += 2;
 			}
-			if (!obj.group_1 && !obj.group_2) {
-				obj.group_1 = partial_lesson.lesson;
-				obj.group_2 = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson;
+			if (!obj.lessons.length) {
+				obj.lessons.push(partial_lesson.lesson);
+				obj.lessons.push(raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson);
 				obj.lesson_count += 2;
 			}
 			les_object_arr.push(obj);
@@ -101,12 +113,14 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 			continue;
 		}
 		if (currentLessonTime !== beforeLessonTime && currentLessonTime !== afterLessonTime) {
-			const obj: lesson = { time: partial_lesson.time, lesson_count: 1 };
-			obj.special_lesson = partial_lesson.lesson;
+			const obj: lesson = { time: partial_lesson.time, lesson_count: 1, lessons: [] };
+			obj.lessons.push(partial_lesson.lesson);
 			les_object_arr.push(obj);
 		}
+	} */
 
-	}
+
+	if (options?.getNextWeek) console.log(les_object_arr);
 	const amount_of_lessons_per_day: number[] = [];
 	const day_html_collection_of_children = (await page.$$('.fc-content-col'));
 	for (const day of day_html_collection_of_children) {
@@ -122,7 +136,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 			while (lessonsToTake > 0 && currentIndex < lessons.length) {
 				const lessonCount = lessons[currentIndex].lesson_count;
 				if (lessonCount > lessonsToTake) {
-					currentLessons.push({ lesson_count: lessonsToTake, lesson: lessons[currentIndex].special_lesson });
+					currentLessons.push({ lesson_count: lessonsToTake, lesson: lessons[currentIndex] });
 					currentIndex++;
 					lessonsToTake = 0;
 				} else {
@@ -176,7 +190,7 @@ const getCrons = (options: { lesson_data: lesson, getRawDate?: true }) => {
 	const date = new Date();
 	date.setHours(getHourforCron(options.lesson_data.time));
 	date.setMinutes(getMinforCron(options.lesson_data.time));
-	const eating_time = options.lesson_data?.special_lesson?.includes('Söömine') || options.lesson_data?.group_1?.includes('Söömine') || options.lesson_data?.group_2?.includes('Söömine') || false;
+	const eating_time = options.lesson_data.lessons.some(lesson => lesson.includes('Söömine'));
 	if (options?.getRawDate) {
 		if (eating_time) {
 			date.setMinutes(date.getMinutes() + 35);
@@ -202,11 +216,7 @@ const startCronJobs = async () => {
 				const notification_embed = new EmbedBuilder()
 					.setTitle(lesson.time + ` (${time(time_until_les.date, TimestampStyles.RelativeTime)})`)
 					.setColor('#000000');
-				if (lesson.special_lesson) {
-					notification_embed.setDescription(codeBlock(lesson.special_lesson));
-				} else {
-					notification_embed.setDescription(codeBlock(`${lesson.group_1}\n----------------------------------\n${lesson.group_2}`));
-				}
+				notification_embed.setDescription(codeBlock(`${lesson.lessons.join('\n----------------------------------\n')}`));
 				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1029335363040329749>', embeds: [notification_embed] });
 				job.stop();
 			}, { timezone: 'Europe/Tallinn' });

@@ -7,7 +7,7 @@ type command = ApplicationCommandDataResolvable & {
 
 type partial_lesson = { lesson: string | null; time: string | null; }[];
 type raw_lesson = { time: string; lesson: string; };
-type lesson = { time?: string; special_lesson?: string; group_1?: string, group_2?: string, lesson_count?: number };
+type lesson = { time?: string; lessons: string[], lesson_count?: number };
 
 enum week_type {
 	'this_week' = 0,

@@ -65,12 +65,12 @@ export = {
 				.setDescription(next_week_selected ? 'See on järgmise esmaspäevase päeva tunniplaan' : 'See on tänane tunniplaan');
 			if (lessons[day - 1] && !next_week_selected) {
 				for (const lesson of lessons[day - 1]) {
-					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+					embed.addFields({ name: lesson.time, value: codeBlock(lesson.lessons.join('\n\n')) });
 				}
 			}
 			if (lessons[0] && next_week_selected) {
 				for (const lesson of lessons[0]) {
-					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+					embed.addFields({ name: lesson.time, value: codeBlock(lesson.lessons.join('\n\n')) });
 				}
 			}
 		} else {
@@ -86,7 +86,7 @@ export = {
 				.setColor('#000000')
 				.setDescription('See on järgmise nädala esmaspäeva tunniplaan');
 			for (const lesson of lessons[0]) {
-				embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+				embed.addFields({ name: lesson.time, value: codeBlock(lesson.lessons.join('\n\n')) });
 			}
 
 		}
@@ -103,7 +103,7 @@ export = {
 				.setDescription(`See on ${(currentDay >= 1 && currentDay <= 5 && !next_week_selected) ? '' : 'järgmise'} ${days[day - 1].label.toLowerCase()}${day !== 5 ? 'ase' : 'se'} päeva tunniplaan`);
 			if (lesson_array[day - 1]) {
 				for (const lesson of lesson_array[day - 1]) {
-					embed.addFields({ name: lesson.time, value: codeBlock(lesson.special_lesson ? lesson.special_lesson : `${lesson.group_1}\n\n${lesson.group_2}`) });
+					embed.addFields({ name: lesson.time, value: codeBlock(lesson.lessons.join('\n\n')) });
 				}
 			}
 			await i.update({ embeds: [embed], components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(updatedSelect)] });
