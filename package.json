@@ -24,7 +24,7 @@
     "test": "set -e && yarn run tsc && yarn run lint:fix"
   },
   "devDependencies": {
-    "@types/glob": "^8.0.0",
+    "@types/glob": "^8.0.1",
     "@types/node": "^18.11.18",
     "@types/node-cron": "^3.0.7",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
