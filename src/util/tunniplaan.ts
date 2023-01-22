@@ -5,7 +5,7 @@ import { lesson, partial_lesson, raw_lesson, week_type } from './interfaces';
 import { client } from '..';
 import { AttachmentBuilder, codeBlock, EmbedBuilder, GuildTextBasedChannel, time, TimestampStyles } from 'discord.js';
 
-import { getFoodForToday } from './functions';
+import { getBussTime, getFoodForToday, getLastLessonBuss } from './functions';
 const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons_old = async (options?: { getNextWeek?: boolean }): Promise<partial_lesson[]> => {
 	const lesson_array: string[] = [];
@@ -223,6 +223,17 @@ const startCronJobs = async () => {
 			cron_jobs.add(job);
 			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson_object_cron.date.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 		}
+		const lastLesson = currentDay[currentDay.length - 1];
+		const lastLesson_object_cron = getCrons({ lesson_data: lastLesson, getRawDate: true });
+		const bussTimeNotification = cron.schedule(lastLesson_object_cron.string, async () => {
+			const bussTimesArray = getLastLessonBuss(lastLesson.time, await getBussTime());
+			const embed = new EmbedBuilder()
+				.setTitle('`4` Alasi (Karete suunas)')
+				.addFields(bussTimesArray.map(bussTimeObject => ({ name: '\u200B', value: codeBlock(bussTimeObject.time), inline: true })))
+				.setColor('#000000');
+			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1066785642115235900>', embeds: [embed] });
+		});
+		cron_jobs.add(bussTimeNotification);
 		const food = cron.schedule('45 11 * * *', async () => {
 			const embed = new EmbedBuilder()
 				.setTitle('Söömine! 12:00 - 12:30')
