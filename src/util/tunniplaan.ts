@@ -224,10 +224,14 @@ const startCronJobs = async () => {
 			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 		}
 		const lastLesson = currentDay[currentDay.length - 1];
-		lastLesson.time = lastLesson.time.split('-')[1].trim();
-		const lastLesson_object_cron = getCrons({ lesson_data: lastLesson, getRawDate: true });
+		const lastLessonMin = parseInt(lastLesson.time.split('-')[1].trim().split(':')[1]);
+		const lastLessonHour = parseInt(lastLesson.time.split('-')[1].trim().split(':')[0]);
+		const lastLessonTime = new Date();
+		lastLessonTime.setHours(lastLessonHour);
+		lastLessonTime.setMinutes(lastLessonMin);
+		const lastLesson_object_cron = { cron: `${lastLessonMin} ${lastLessonHour} * * *`, date: lastLessonTime };
 		const bussTimeNotification = cron.schedule(lastLesson_object_cron.cron, async () => {
-			const bussTimesArray = getLastLessonBuss(lastLesson.time, await getBussTime());
+			const bussTimesArray = getLastLessonBuss(`${lastLessonHour}:${lastLessonMin}`, await getBussTime());
 			const embed = new EmbedBuilder()
 				.setTitle('`4` Alasi (Karete suunas)')
 				.addFields(bussTimesArray.map(bussTimeObject => ({ name: '\u200B', value: codeBlock(bussTimeObject.time), inline: true })))
