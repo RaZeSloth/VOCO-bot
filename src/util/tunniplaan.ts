@@ -237,7 +237,7 @@ const startCronJobs = async () => {
 				.addFields(bussTimesArray.map(bussTimeObject => ({ name: '\u200B', value: codeBlock(bussTimeObject.time), inline: true })))
 				.setColor('#000000');
 			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1066785642115235900>', embeds: [embed] });
-		});
+		}, { timezone: 'Europe/Tallinn' });
 		cron_jobs.add(bussTimeNotification);
 		console.log(green(`Buss notification at: ${lastLesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 
