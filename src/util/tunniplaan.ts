@@ -221,11 +221,12 @@ const startCronJobs = async () => {
 				job.stop();
 			}, { timezone: 'Europe/Tallinn' });
 			cron_jobs.add(job);
-			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson_object_cron.date.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })} is scheduled`));
+			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 		}
 		const lastLesson = currentDay[currentDay.length - 1];
+		lastLesson.time = lastLesson.time.split('-')[1].trim();
 		const lastLesson_object_cron = getCrons({ lesson_data: lastLesson, getRawDate: true });
-		const bussTimeNotification = cron.schedule(lastLesson_object_cron.string, async () => {
+		const bussTimeNotification = cron.schedule(lastLesson_object_cron.cron, async () => {
 			const bussTimesArray = getLastLessonBuss(lastLesson.time, await getBussTime());
 			const embed = new EmbedBuilder()
 				.setTitle('`4` Alasi (Karete suunas)')
@@ -234,6 +235,8 @@ const startCronJobs = async () => {
 			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1066785642115235900>', embeds: [embed] });
 		});
 		cron_jobs.add(bussTimeNotification);
+		console.log(green(`Buss notification at: ${lastLesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
+
 		const food = cron.schedule('45 11 * * *', async () => {
 			const embed = new EmbedBuilder()
 				.setTitle('Söömine! 12:00 - 12:30')
