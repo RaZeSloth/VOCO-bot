@@ -17,11 +17,19 @@ const getFoodForToday = async (): Promise<Buffer> => {
 	b.close();
 	return buff as Buffer;
 };
-const getBussTimes = async (): Promise<string[]> => {
+const getBussTime = async (): Promise<string[]> => {
 	const data = (await axios.get('https://web.peatus.ee/pysakit/estonia%3A26850/aikataulu')).data;
 	const $ = load(data);
-	const time = $('span.time').toArray().map((e) => $(e).text());
-	return time;
+	// const time = $('span.time').toArray().map((e) => $(e).text());
+	// div.momentum-scroll:nth-child(1) > a:nth-child(1) > p:nth-child(1) > span:nth-child(2) > span:nth-child(2)
+	const times: string[] = [];
+	$('p.route-detail-text').each(function() {
+		if ($(this).find('.vehicle-number').text() == '4') {
+			const time = $(this).find('.time').text();
+			times.push(time);
+		}
+	});
+	return times;
 };
 const getLastLessonBuss = (lastLessonTime: string, bussTimes: string[]): {time: string, date: Date}[] => {
 	const endTime = lastLessonTime.split('-')[1].trim();
@@ -47,4 +55,4 @@ const getLastLessonBuss = (lastLessonTime: string, bussTimes: string[]): {time: 
 	}
 };
 
-export { useModal, getFoodForToday, getBussTimes as getBussTime, getLastLessonBuss };
+export { useModal, getFoodForToday, getBussTime, getLastLessonBuss };
