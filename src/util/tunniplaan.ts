@@ -231,7 +231,7 @@ const startCronJobs = async () => {
 		lastLessonTime.setMinutes(lastLessonMin);
 		const lastLesson_object_cron = { cron: `${lastLessonMin} ${lastLessonHour} * * *`, date: lastLessonTime };
 		const bussTimeNotification = cron.schedule(lastLesson_object_cron.cron, async () => {
-			const bussTimesArray = getLastLessonBuss(`${lastLessonHour}:${lastLessonMin}`, await getBussTime());
+			const bussTimesArray = getLastLessonBuss(lastLesson.time, await getBussTime());
 			const embed = new EmbedBuilder()
 				.setTitle('`4` Alasi (Karete suunas)')
 				.addFields(bussTimesArray.map(bussTimeObject => ({ name: '\u200B', value: codeBlock(bussTimeObject.time), inline: true })))
