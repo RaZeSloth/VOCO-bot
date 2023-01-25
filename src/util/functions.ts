@@ -2,6 +2,7 @@ import { CommandInteraction, ContextMenuCommandInteraction, MessageComponentInte
 import Puppeteer from 'puppeteer';
 import axios from 'axios';
 import { load } from 'cheerio';
+import busTimesJson from '../../output.json';
 
 const useModal: (sourceInteraction: CommandInteraction| ContextMenuCommandInteraction | MessageComponentInteraction, modal: ModalBuilder, timeout?: number,) => Promise<ModalSubmitInteraction | null> = async (commandInteraction, modal, timeout = 2 * 60 * 1000) => {
 	await commandInteraction.showModal(modal);
@@ -18,7 +19,7 @@ const getFoodForToday = async (): Promise<Buffer> => {
 	return buff as Buffer;
 };
 const getBussTime = async (): Promise<string[]> => {
-	const data = (await axios.get('https://web.peatus.ee/pysakit/estonia%3A26850/aikataulu')).data;
+	const data = (await axios.get(busTimesJson['Alasi (Karete suunas)'])).data;
 	const $ = load(data);
 	// const time = $('span.time').toArray().map((e) => $(e).text());
 	// div.momentum-scroll:nth-child(1) > a:nth-child(1) > p:nth-child(1) > span:nth-child(2) > span:nth-child(2)
