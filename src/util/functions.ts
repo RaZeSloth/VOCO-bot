@@ -2,7 +2,7 @@ import { CommandInteraction, ContextMenuCommandInteraction, MessageComponentInte
 import Puppeteer from 'puppeteer';
 import axios from 'axios';
 import { load } from 'cheerio';
-import busTimesJson from '../../output.json';
+import busTimesJson from '../json/bus_times.json';
 
 const useModal: (sourceInteraction: CommandInteraction| ContextMenuCommandInteraction | MessageComponentInteraction, modal: ModalBuilder, timeout?: number,) => Promise<ModalSubmitInteraction | null> = async (commandInteraction, modal, timeout = 2 * 60 * 1000) => {
 	await commandInteraction.showModal(modal);
