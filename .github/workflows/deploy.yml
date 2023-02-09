@@ -11,9 +11,9 @@ jobs:
       - name: Deploy to Raspberry Pi
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd Desktop/VOCO-bot
             ./server.sh
