@@ -14,7 +14,10 @@ jobs:
         run: sudo apt-get install -y openssh-client
 
       - name: Add SSH key
-        run: echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
       
       - name: SSH into server and execute script
         run: |
