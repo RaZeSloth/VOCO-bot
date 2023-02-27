@@ -20,4 +20,5 @@ jobs:
       
       - name: SSH into server and execute script
         run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST }} "cd /home/${{ secrets.USERNAME }}/Desktop/VOCO-bot && ./server.sh"
+          ssh -o StrictHostKeyChecking=no -i ${{ env.SSH_AUTH_SOCK }} ${{ secrets.USERNAME }}@${{ secrets.HOST }} "cd /home/${{ secrets.USERNAME }}/Desktop/VOCO-bot && ./server.sh"
+
