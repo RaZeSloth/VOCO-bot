@@ -12,7 +12,7 @@
     "discord.js": "^14.7.1",
     "distube": "^4.0.4",
     "dotenv": "^16.0.3",
-    "glob": "^8.1.0",
+    "glob": "^9.3.1",
     "libsodium-wrappers": "^0.7.11",
     "node-cron": "^3.0.2",
     "puppeteer": "^19.7.2",
