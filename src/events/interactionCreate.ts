@@ -33,4 +33,13 @@ export = async (client: VocoBot, int: Interaction) => {
 			break;
 		}
 	}
+	if (int.isAutocomplete()) {
+		const command = client.commands.get(int.commandName);
+		if (!command) return;
+		try {
+			await command.autocomplete(client, int);
+		} catch (e) {
+			console.error(e);
+		}
+	}
 }

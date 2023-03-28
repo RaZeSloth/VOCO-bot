@@ -6,6 +6,7 @@ import { client } from '..';
 import { AttachmentBuilder, codeBlock, EmbedBuilder, GuildTextBasedChannel, time, TimestampStyles } from 'discord.js';
 
 import { getBussTime, getFoodForToday, getLastLessonBuss } from './functions';
+import lessonsModel from '../model/lessonsModel';
 const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons_old = async (options?: { getNextWeek?: boolean }): Promise<partial_lesson[]> => {
 	const lesson_array: string[] = [];
@@ -74,13 +75,13 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 		}
 	}
 
-	const les_object_arr: lesson[] = raw_lessons_objects.reduce((acc, { time, lesson }) => {
-		const lastLesson = acc[acc.length - 1];
+	const les_object_arr: lesson[] = raw_lessons_objects.reduce((acc: lesson[], { time, lesson }) => {
+		const lastLesson: lesson = acc[acc.length - 1];
 		if (lastLesson && lastLesson.time === time) {
-			lastLesson.lessons.push(lesson);
+			lastLesson.lessons.push({ name: lesson });
 			lastLesson.lesson_count++;
 		} else {
-			acc.push({ time, lesson_count: 1, lessons: [lesson] });
+			acc.push({ time, lesson_count: 1, lessons: [{ name: lesson }] });
 		}
 		return acc;
 	}, []);
@@ -120,7 +121,6 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 	} */
 
 
-	if (options?.getNextWeek) console.log(les_object_arr);
 	const amount_of_lessons_per_day: number[] = [];
 	const day_html_collection_of_children = (await page.$$('.fc-content-col'));
 	for (const day of day_html_collection_of_children) {
@@ -174,7 +174,23 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 			m = parseInt(les_object_arr[i].time);
 		}
 	} */
+	for (const day of fil_times) {
+		for (const data of day) {
+			for (const lesson of data.lessons) {
+				const lessonName = sanitizeString(lesson.name);
+				console.log(lessonName);
+				const existingLesson = await lessonsModel.findOne({ lessonName });
+				if (!existingLesson) {
+					await lessonsModel.create({ lessonName, lastUpdated: new Date() });
+				} else if (existingLesson.lessonGroup) {
+					lesson.lesson_group = existingLesson.lessonGroup;
+				}
+			}
+		}
+	}
+
 	client.cache.set(options?.getNextWeek ? week_type.next_week : week_type.this_week, fil_times);
+	console.log(fil_times);
 	return fil_times;
 };
 
@@ -185,12 +201,14 @@ const getMinforCron = (time: string) => {
 const getHourforCron = (time: string) => {
 	return parseInt(time.split('-')[0].trim().split(':')[0]);
 };
-
+function sanitizeString(str: string) {
+	return str.split(';').map((s) => s.trim()).slice(0, 2).join('; ');
+}
 const getCrons = (options: { lesson_data: lesson, getRawDate?: true }) => {
 	const date = new Date();
 	date.setHours(getHourforCron(options.lesson_data.time));
 	date.setMinutes(getMinforCron(options.lesson_data.time));
-	const eating_time = options.lesson_data.lessons.some(lesson => lesson.includes('Söömine'));
+	const eating_time = options.lesson_data.lessons.some(lesson => lesson.name.includes('Söömine'));
 	if (options?.getRawDate) {
 		if (eating_time) {
 			date.setMinutes(date.getMinutes() + 35);
@@ -209,19 +227,19 @@ const startCronJobs = async () => {
 		const data = await getAllSchoolTimesAndLessons();
 		const currentDay = data[day - 1];
 		if (currentDay.length === 0) return;
-		for (const lesson of currentDay) {
-			const lesson_object_cron = getCrons({ lesson_data: lesson });
+		for (const lessonData of currentDay) {
+			const lesson_object_cron = getCrons({ lesson_data: lessonData });
 			const job = cron.schedule(lesson_object_cron.string, async () => {
-				const time_until_les = getCrons({ lesson_data: lesson, getRawDate: true });
+				const time_until_les = getCrons({ lesson_data: lessonData, getRawDate: true });
 				const notification_embed = new EmbedBuilder()
-					.setTitle(lesson.time + ` (${time(time_until_les.date, TimestampStyles.RelativeTime)})`)
+					.setTitle(lessonData.time + ` (${time(time_until_les.date, TimestampStyles.RelativeTime)})`)
 					.setColor('#000000');
-				notification_embed.setDescription(codeBlock(`${lesson.lessons.join('\n----------------------------------\n')}`));
+				notification_embed.setDescription(codeBlock(`${lessonData.lessons.map(data => `${data.name} - ${data.lesson_group}`).join('\n----------------------------------\n')}`));
 				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1029335363040329749>', embeds: [notification_embed] });
 				job.stop();
 			}, { timezone: 'Europe/Tallinn' });
 			cron_jobs.add(job);
-			console.log(green(`Lesson nr ${currentDay.indexOf(lesson) + 1} at ${lesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
+			console.log(green(`Lesson nr ${currentDay.indexOf(lessonData) + 1} at ${lesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 		}
 		const lastLesson = currentDay[currentDay.length - 1];
 		const lastLessonMin = parseInt(lastLesson.time.split('-')[1].trim().split(':')[1]);

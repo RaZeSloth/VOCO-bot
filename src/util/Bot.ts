@@ -2,6 +2,8 @@ import { ChatInputCommandInteraction, Client, codeBlock, Collection, EmbedBuilde
 import path from 'path';
 import { colors, command, lesson } from './interfaces';
 import dt from 'distube';
+import mongoose from 'mongoose';
+import chalk from 'chalk';
 class VocoBot extends Client {
 	commands: Collection<string, command>;
 	cache: Collection<number, lesson[][]>;
@@ -38,10 +40,15 @@ class VocoBot extends Client {
 
 		this.music = distube;
 	}
+	async db_init() {
+		await mongoose.connect(process.env.dburi, { appName: 'voco-bot' });
+		console.log(chalk.green('[DB] Connected to MongoDB!'));
+	}
 	async start() {
 		['cmd_handler', 'event_handler'].map(async hand => await (await import(path.resolve(__dirname, `../handlers/${hand}`))).default(this));
+		await this.db_init();
 		await (await import('../util/tunniplaan')).init();
-		await this.dt_launch();
+		// await this.dt_launch();
 	}
 }
 
