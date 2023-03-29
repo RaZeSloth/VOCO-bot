@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { command, lesson, week_type } from '../util/interfaces';
 import lessonsModel from '../model/lessonsModel';
+import { sanitizeString } from '../util/functions';
 
 const days = [
 	{
@@ -172,6 +173,21 @@ export = {
 			const grupp = int.options.getString('grupp');
 			tund.lessonGroup = grupp;
 			await tund.save();
+			const weeksToCache = [week_type.this_week, week_type.next_week];
+			for (const week of weeksToCache) {
+				const cachedWeek = client.cache.get(week);
+				if (cachedWeek) {
+					for (const day of cachedWeek) {
+						for (const lesson of day) {
+							const matchingLesson = lesson.lessons.find(lessonData => sanitizeString(lessonData.name) === tund.lessonName);
+							if (matchingLesson) {
+								matchingLesson.lesson_group = grupp;
+								client.cache.set(week, cachedWeek);
+							}
+						}
+					}
+				}
+			}
 			const embed = new EmbedBuilder()
 				.setTitle('Tunniplaan updatitud')
 				.setColor('#000000')

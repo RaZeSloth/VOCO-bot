@@ -9,6 +9,10 @@ const useModal: (sourceInteraction: CommandInteraction| ContextMenuCommandIntera
 	return commandInteraction.awaitModalSubmit({ time: timeout, filter: (filterInteraction) => filterInteraction.customId === modal.data.custom_id }).catch(() => null);
 };
 
+function sanitizeString(str: string) {
+	return str.split(';').map((s) => s.trim()).slice(0, 2).join('; ');
+}
+
 const getFoodForToday = async (): Promise<Buffer> => {
 	const b = await Puppeteer.launch({ headless: true, defaultViewport: { width: 1920, height: 1080 } });
 	const apiURL = 'https://siseveeb.voco.ee/veebivormid/restorani_menuu';
@@ -56,4 +60,4 @@ const getLastLessonBuss = (lastLessonTime: string, bussTimes: string[]): {time: 
 	}
 };
 
-export { useModal, getFoodForToday, getBussTime, getLastLessonBuss };
+export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString };

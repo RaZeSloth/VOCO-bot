@@ -5,7 +5,7 @@ import { lesson, partial_lesson, raw_lesson, week_type } from './interfaces';
 import { client } from '..';
 import { AttachmentBuilder, codeBlock, EmbedBuilder, GuildTextBasedChannel, time, TimestampStyles } from 'discord.js';
 
-import { getBussTime, getFoodForToday, getLastLessonBuss } from './functions';
+import { getBussTime, getFoodForToday, getLastLessonBuss, sanitizeString } from './functions';
 import lessonsModel from '../model/lessonsModel';
 const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons_old = async (options?: { getNextWeek?: boolean }): Promise<partial_lesson[]> => {
@@ -190,7 +190,6 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 	}
 
 	client.cache.set(options?.getNextWeek ? week_type.next_week : week_type.this_week, fil_times);
-	console.log(fil_times);
 	return fil_times;
 };
 
@@ -201,9 +200,6 @@ const getMinforCron = (time: string) => {
 const getHourforCron = (time: string) => {
 	return parseInt(time.split('-')[0].trim().split(':')[0]);
 };
-function sanitizeString(str: string) {
-	return str.split(';').map((s) => s.trim()).slice(0, 2).join('; ');
-}
 const getCrons = (options: { lesson_data: lesson, getRawDate?: true }) => {
 	const date = new Date();
 	date.setHours(getHourforCron(options.lesson_data.time));
