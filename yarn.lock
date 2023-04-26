@@ -2050,10 +2050,10 @@ mongodb@5.1.0:
   optionalDependencies:
     saslprep "^1.0.3"
 
-mongoose@^7.0.3:
-  version "7.0.3"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-7.0.3.tgz#576375acb436f96cd3350fb63fddbac7ae51ff9c"
-  integrity sha512-3n8vc1/mssuxKa6vfghSocp3MeiCFYzhX36Ok+PsDNNYzHC9tw3rNkAMLemIwZ2jgXqkZ7CfKOxkzjp/d/SWfg==
+mongoose@^7.0.5:
+  version "7.0.5"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-7.0.5.tgz#a78a63f8e88d8e8a477234e223be0eb2fdf7e6ed"
+  integrity sha512-dkW+RSpMczsHGXCmmEzR6W8aanwTnTQlYJkImN3F4DwRQv1HVmmmCd/HopmSdVfrJldpiV3bPPK2zVXLjbd/mA==
   dependencies:
     bson "^5.0.1"
     kareem "2.5.1"
