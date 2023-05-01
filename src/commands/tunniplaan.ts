@@ -26,7 +26,7 @@ const days = [
 	},
 ];
 export = {
-	name: 'tunniplaan',
+	name: 'tunniplaan-dev',
 	type: ApplicationCommandType.ChatInput,
 	description: 'Näe nädalate tunniplaani',
 	options: [
@@ -59,27 +59,42 @@ export = {
 					description: 'Grupp',
 					type: ApplicationCommandOptionType.String,
 					required: true,
-					autocomplete: true,
+					choices: [
+						{
+							name: '1',
+							value: '1',
+						},
+						{
+							name: '2',
+							value: '2',
+						},
+						{
+							name: '1+2',
+							value: '1+2',
+						},
+						{
+							name: '1/2',
+							value: '1/2',
+						},
+					],
 				},
 			],
+		},
+		{
+			name: 'analüüsi',
+			type: ApplicationCommandOptionType.Subcommand,
+			description: 'Analüüsi tunniplaani',
 		},
 	],
 	async autocomplete(client, int) {
 		const subcommand = int.options.getSubcommand();
 		if (subcommand === 'seadista') {
 			const focused = int.options.getFocused(true);
-			if (focused.name === 'tund') {
-				const lessons = await lessonsModel.find({});
-				const lesson_names = lessons.map(lesson => ({ name: lesson.lessonName, group: lesson?.lessonGroup }));
-				const lesson_filtered = lesson_names.map((lesson, index) => ({ lesson: lesson, index: index.toString() })).filter(data => data.lesson.name.toLowerCase().includes(focused.value));
-				const firstTenLessons = lesson_names.map((lesson, index) => ({ name: turnicate(lesson, 90), value: index.toString() })).slice(0, 23);
-				return await int.respond(focused.value !== '' ? lesson_filtered.map(data => ({ name: turnicate(data.lesson, 90), value: data.index })).slice(0, 23) : firstTenLessons);
-			}
-			if (focused.name === 'grupp') {
-				const lesson_groups = ['1', '2', '1+2', '1/2'];
-				const lesson_filtered = lesson_groups.filter(grupp => grupp.toLowerCase().includes(focused.value));
-				return await int.respond(lesson_filtered.map(grupp => ({ name: grupp, value: grupp })));
-			}
+			const lessons = await lessonsModel.find({});
+			const lesson_names = lessons.map(lesson => ({ name: lesson.lessonName, group: lesson?.lessonGroup }));
+			const lesson_filtered = lesson_names.map((lesson, index) => ({ lesson: lesson, index: index.toString() })).filter(data => data.lesson.name.toLowerCase().includes(focused.value.toLowerCase()));
+			const firstTenLessons = lesson_names.map((lesson, index) => ({ name: turnicate(lesson, 90), value: index.toString() })).slice(0, 23);
+			return await int.respond(focused.value !== '' ? lesson_filtered.map(data => ({ name: turnicate(data.lesson, 90), value: data.index })).slice(0, 23) : firstTenLessons);
 		}
 	},
 	async execute(client, int: ChatInputCommandInteraction) {
@@ -192,6 +207,35 @@ export = {
 				.setTitle('Tunniplaan updatitud')
 				.setColor('#000000')
 				.setDescription(`Tund ${codeBlock(tund.lessonName)} on nüüd ${codeBlock(grupp)}`);
+			await int.reply({ ephemeral: true, embeds: [embed] });
+		}
+		if (subcommand === 'analüüsi') {
+			const day = new Date().getDay();
+			let lessons: lesson[][];
+			if (((day >= 1 && day <= 5) && client.cache.has(week_type.this_week))) {
+				lessons = client.cache.get(week_type.next_week);
+				if (!lessons) {
+					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true });
+					client.cache.set(week_type.this_week, lessons);
+				}
+			}
+			let totalLessonCount = 0;
+			const lessonCountForGroup = { group_1: 0, group_2: 0, group_1_2: 0 };
+			for (let i = 0; i < lessons.length; i++) {
+				for (let j = 0; j < lessons[i].length; j++) {
+					totalLessonCount += lessons[i][j].lesson_count || 0;
+					lessonCountForGroup.group_1 += lessons[i][j].lessons.reduce((acc, lesson) => acc + (lesson.lesson_group === '1' ? 1 : 0), 0);
+					lessonCountForGroup.group_2 += lessons[i][j].lessons.reduce((acc, lesson) => acc + (lesson.lesson_group === '2' ? 1 : 0), 0);
+					lessonCountForGroup.group_1_2 += lessons[i][j].lessons.reduce((acc, lesson) => acc + (lesson.lesson_group === '1+2' || lesson.lesson_group === '1/2' ? 1 : 0), 0);
+
+
+				}
+			}
+			const embed = new EmbedBuilder()
+				.setTitle('Tunniplaan analüüs')
+				.setColor('#000000')
+				// .setDescription(`Tunde kokku: ${codeBlock(totalLessonCount.toString())}\nTunde esimesel rühmal: ${codeBlock(lessonCountForGroup.group_1.toString())}\nTunde teisel rühmal: ${codeBlock(lessonCountForGroup.group_2.toString())}\nTunde koos: ${codeBlock(lessonCountForGroup.group_1_2.toString())}`);
+				.addFields({ name: 'Tunde kokku', value: `${codeBlock(totalLessonCount.toString())}` }, { name: 'Tunde esimesel rühmal', value: codeBlock(lessonCountForGroup.group_1.toString()), inline: true }, { name: 'Tunde teisel rühmal', value: codeBlock(lessonCountForGroup.group_2.toString()), inline: true }, { name: 'Tunde koos', value: codeBlock(lessonCountForGroup.group_1_2.toString()), inline: true });
 			await int.reply({ ephemeral: true, embeds: [embed] });
 		}
 	},
