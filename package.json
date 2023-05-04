@@ -19,7 +19,7 @@
     "libsodium-wrappers": "^0.7.11",
     "mongoose": "^7.0.3",
     "node-cron": "^3.0.2",
-    "puppeteer": "^19.8.5",
+    "puppeteer": "^20.1.0",
     "sodium": "^3.0.2",
     "typescript": "^5.0.4"
   },
