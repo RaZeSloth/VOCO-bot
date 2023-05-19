@@ -26,7 +26,7 @@ const days = [
 	},
 ];
 export = {
-	name: 'tunniplaan-dev',
+	name: 'tunniplaan',
 	type: ApplicationCommandType.ChatInput,
 	description: 'Näe nädalate tunniplaani',
 	options: [
@@ -210,13 +210,20 @@ export = {
 			await int.reply({ ephemeral: true, embeds: [embed] });
 		}
 		if (subcommand === 'analüüsi') {
+			await int.deferReply({ ephemeral: true });
 			const day = new Date().getDay();
 			let lessons: lesson[][];
-			if (((day >= 1 && day <= 5) && client.cache.has(week_type.this_week))) {
+			if (day >= 1 && day <= 5) {
+				lessons = client.cache.get(week_type.this_week);
+				if (!lessons) {
+					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons();
+					client.cache.set(week_type.this_week, lessons);
+				}
+			} else {
 				lessons = client.cache.get(week_type.next_week);
 				if (!lessons) {
 					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true });
-					client.cache.set(week_type.this_week, lessons);
+					client.cache.set(week_type.next_week, lessons);
 				}
 			}
 			let totalLessonCount = 0;
@@ -236,7 +243,7 @@ export = {
 				.setColor('#000000')
 				// .setDescription(`Tunde kokku: ${codeBlock(totalLessonCount.toString())}\nTunde esimesel rühmal: ${codeBlock(lessonCountForGroup.group_1.toString())}\nTunde teisel rühmal: ${codeBlock(lessonCountForGroup.group_2.toString())}\nTunde koos: ${codeBlock(lessonCountForGroup.group_1_2.toString())}`);
 				.addFields({ name: 'Tunde kokku', value: `${codeBlock(totalLessonCount.toString())}` }, { name: 'Tunde esimesel rühmal', value: codeBlock(lessonCountForGroup.group_1.toString()), inline: true }, { name: 'Tunde teisel rühmal', value: codeBlock(lessonCountForGroup.group_2.toString()), inline: true }, { name: 'Tunde koos', value: codeBlock(lessonCountForGroup.group_1_2.toString()), inline: true });
-			await int.reply({ ephemeral: true, embeds: [embed] });
+			await int.editReply({ embeds: [embed] });
 		}
 	},
 } as command;
