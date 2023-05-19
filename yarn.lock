@@ -601,10 +601,9 @@ braces@^3.0.2:
   dependencies:
     fill-range "^7.0.1"
 
-bson@^5.0.1:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/bson/-/bson-5.1.0.tgz#7b15cd9aa012b8bf9d320fbaefe15cc2fb657de2"
-  integrity "sha1-exXNmqASuL+dMg+67+FcwvtlfeI= sha512-FEecNHkhYRBe7X9KDkdG12xNuz5VHGeH6mCE0B5sBmYtiR/Ux/9vUH/v4NUoBCDr6NuEhvahjoLiiRogptVW0A=="
+bson@^5.2.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/bson/-/bson-5.3.0.tgz#37b006df4cd91ed125cb686467c1dd6d4606b514"
 
 buffer-crc32@~0.2.3:
   version "0.2.13"
@@ -2039,25 +2038,23 @@ mongodb-connection-string-url@^2.6.0:
     "@types/whatwg-url" "^8.2.1"
     whatwg-url "^11.0.0"
 
-mongodb@5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-5.1.0.tgz#e551f9e496777bde9173e51d16c163ab2c805b9d"
-  integrity "sha1-5VH55JZ3e96Rc+UdFsFjqyyAW50= sha512-qgKb7y+EI90y4weY3z5+lIgm8wmexbonz0GalHkSElQXVKtRuwqXuhXKccyvIjXCJVy9qPV82zsinY0W1FBnJw=="
+mongodb@5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-5.3.0.tgz#9bef3ff35511a66fb7d9aafb7b06112787138db1"
   dependencies:
-    bson "^5.0.1"
+    bson "^5.2.0"
     mongodb-connection-string-url "^2.6.0"
     socks "^2.7.1"
   optionalDependencies:
     saslprep "^1.0.3"
 
-mongoose@^7.0.3:
-  version "7.0.3"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-7.0.3.tgz#576375acb436f96cd3350fb63fddbac7ae51ff9c"
-  integrity "sha1-V2N1rLQ2+WzTNQ+2P926x65R/5w= sha512-3n8vc1/mssuxKa6vfghSocp3MeiCFYzhX36Ok+PsDNNYzHC9tw3rNkAMLemIwZ2jgXqkZ7CfKOxkzjp/d/SWfg=="
+mongoose@^7.1.2:
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-7.1.2.tgz#3ef05c82d8aaddf9d2a3f5f39f850c9800487fac"
   dependencies:
-    bson "^5.0.1"
+    bson "^5.2.0"
     kareem "2.5.1"
-    mongodb "5.1.0"
+    mongodb "5.3.0"
     mpath "0.9.0"
     mquery "5.0.0"
     ms "2.1.3"
