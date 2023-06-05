@@ -14,7 +14,7 @@
     "discord.js": "^14.11.0",
     "distube": "^4.0.4",
     "dotenv": "^16.0.3",
-    "eslint": "^8.38.0",
+    "eslint": "^8.42.0",
     "glob": "^9.3.2",
     "libsodium-wrappers": "^0.7.11",
     "mongoose": "^7.1.2",
