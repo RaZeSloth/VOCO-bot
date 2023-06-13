@@ -15,7 +15,7 @@
     "distube": "^4.0.4",
     "dotenv": "^16.1.4",
     "eslint": "^8.42.0",
-    "glob": "^9.3.2",
+    "glob": "^10.2.7",
     "libsodium-wrappers": "^0.7.11",
     "mongoose": "^7.2.4",
     "node-cron": "^3.0.2",
