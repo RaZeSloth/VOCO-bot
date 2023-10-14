@@ -2,6 +2,7 @@ import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType,
 import { command, lesson, week_type } from '../util/interfaces';
 import lessonsModel from '../model/lessonsModel';
 import { sanitizeString } from '../util/functions';
+import emailModel from '../model/emailModel';
 
 const days = [
 	{
@@ -84,6 +85,24 @@ export = {
 			name: 'analüüsi',
 			type: ApplicationCommandOptionType.Subcommand,
 			description: 'Analüüsi tunniplaani',
+		},
+		{
+			name: 'liitu',
+			type: ApplicationCommandOptionType.Subcommand,
+			description: 'Liitu tunniplaani uuendustega',
+			options: [
+				{
+					name: 'email',
+					type: ApplicationCommandOptionType.String,
+					description: 'Email, kuhu saata tunniplaani uuendused',
+					required: true,
+				},
+			],
+		},
+		{
+			name: 'lahku',
+			type: ApplicationCommandOptionType.Subcommand,
+			description: 'Lahku tunniplaani uuendustest',
 		},
 	],
 	async autocomplete(client, int) {
@@ -244,6 +263,37 @@ export = {
 				// .setDescription(`Tunde kokku: ${codeBlock(totalLessonCount.toString())}\nTunde esimesel rühmal: ${codeBlock(lessonCountForGroup.group_1.toString())}\nTunde teisel rühmal: ${codeBlock(lessonCountForGroup.group_2.toString())}\nTunde koos: ${codeBlock(lessonCountForGroup.group_1_2.toString())}`);
 				.addFields({ name: 'Tunde kokku', value: `${codeBlock(totalLessonCount.toString())}` }, { name: 'Tunde esimesel rühmal', value: codeBlock(lessonCountForGroup.group_1.toString()), inline: true }, { name: 'Tunde teisel rühmal', value: codeBlock(lessonCountForGroup.group_2.toString()), inline: true }, { name: 'Tunde koos', value: codeBlock(lessonCountForGroup.group_1_2.toString()), inline: true });
 			await int.editReply({ embeds: [embed] });
+		}
+		if (subcommand === 'liitu') {
+			await int.deferReply({ ephemeral: true });
+			const email = int.options.getString('email');
+			// Check if email is an actual email with regex
+			if (!email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) {
+				await int.editReply({ content: 'See pole õige email' });
+				return;
+			}
+			const emailExists = await emailModel.exists({ userId: int.user.id });
+			if (emailExists) {
+				const emailData = await emailModel.findOne({ userId: int.user.id });
+				emailData.email = email;
+				emailData.lastUpdated = new Date();
+				emailData.save();
+				await int.editReply({ content: 'Email edukalt uuendatud' });
+				return;
+			}
+			const emailData = new emailModel({ email: email, userId: int.user.id, lastUpdated: new Date() });
+			await emailData.save();
+			await int.editReply({ content: 'Email edukalt lisatud' });
+		}
+		if (subcommand === 'lahku') {
+			await int.deferReply({ ephemeral: true });
+			const emailExists = await emailModel.exists({ userId: int.user.id });
+			if (!emailExists) {
+				await int.editReply({ content: 'Sa ei ole liitunud tunniplaani uuendustega' });
+				return;
+			}
+			await emailModel.deleteOne({ userId: int.user.id });
+			await int.editReply({ content: 'Email edukalt eemaldatud' });
 		}
 	},
 } as command;

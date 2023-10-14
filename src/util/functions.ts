@@ -3,6 +3,8 @@ import Puppeteer from 'puppeteer';
 import axios from 'axios';
 import { load } from 'cheerio';
 import busTimesJson from '../json/bus_times.json';
+import nodemailer from 'nodemailer';
+import 'dotenv/config';
 
 const useModal: (sourceInteraction: CommandInteraction| ContextMenuCommandInteraction | MessageComponentInteraction, modal: ModalBuilder, timeout?: number,) => Promise<ModalSubmitInteraction | null> = async (commandInteraction, modal, timeout = 2 * 60 * 1000) => {
 	await commandInteraction.showModal(modal);
@@ -60,4 +62,32 @@ const getLastLessonBuss = (lastLessonTime: string, bussTimes: string[]): {time: 
 	}
 };
 
-export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString };
+const sendEmail = async ({ emails, subject, text, attachments }: {emails: string[], subject: string, text?: string, attachments?: string[]}) => {
+	const transporter = nodemailer.createTransport({
+		service: 'gmail',
+		auth: {
+			user: process.env.email,
+			pass: process.env.email_password,
+		},
+	});
+	const mailOptions = {
+		from: process.env.email,
+		to: emails.join(', '),
+		subject,
+		text: text ? text : '',
+		attachments: attachments?.map((attachment) => ({ path: attachment })),
+	};
+	await transporter.sendMail(mailOptions);
+};
+
+const weeksSinceSeptember1 = () => {
+	const today = new Date();
+	const september1 = new Date(today.getFullYear(), 8, 1);
+
+	const timeDiff = today.getTime() - september1.getTime();
+
+	const weeksDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24 * 7));
+
+	return weeksDiff;
+};
+export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1 };

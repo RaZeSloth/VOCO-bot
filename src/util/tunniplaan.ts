@@ -5,8 +5,12 @@ import { lesson, partial_lesson, raw_lesson, week_type } from './interfaces';
 import { client } from '..';
 import { AttachmentBuilder, codeBlock, EmbedBuilder, GuildTextBasedChannel, time, TimestampStyles } from 'discord.js';
 
-import { getBussTime, getFoodForToday, getLastLessonBuss, sanitizeString } from './functions';
+import { getBussTime, getFoodForToday, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1 } from './functions';
 import lessonsModel from '../model/lessonsModel';
+import axios from 'axios';
+import fs from 'fs';
+import emailModel from '../model/emailModel';
+
 const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons_old = async (options?: { getNextWeek?: boolean }): Promise<partial_lesson[]> => {
 	const lesson_array: string[] = [];
@@ -279,4 +283,15 @@ export = { init: async () => {
 		await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).bulkDelete(100).catch(() => null);
 		await startCronJobs();
 	}, { timezone: 'Europe/Tallinn' });
+	cron.schedule('0 0 * * 1', async () => {
+		const date = new Date();
+		const writer = fs.createWriteStream('tunniplaan.pdf');
+		const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=1692&nadal=${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`, { responseType: 'stream' });
+		response.data.pipe(writer);
+		writer.on('finish', async () => {
+			const emails = await emailModel.find();
+			const user_emails = emails.map(email => email.email);
+			await sendEmail({ emails: user_emails, subject: `${weeksSinceSeptember1()}. nädala tunniplaan`, attachments: ['tunniplaan.pdf'] });
+		});
+	});
 }, getAllSchoolTimesAndLessons, getAllSchoolTimesAndLessons_old };
