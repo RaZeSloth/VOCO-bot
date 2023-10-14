@@ -290,7 +290,7 @@ export = { init: async () => {
 		response.data.pipe(writer);
 		writer.on('finish', async () => {
 			const emails = await emailModel.find();
-			const user_emails = emails.map(email => email.email);
+			const user_emails = emails.map(email => email.emails).flat();
 			await sendEmail({ emails: user_emails, subject: `${weeksSinceSeptember1()}. nädala tunniplaan`, attachments: ['tunniplaan.pdf'] });
 		});
 	});

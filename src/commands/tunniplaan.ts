@@ -87,9 +87,9 @@ export = {
 			description: 'Analüüsi tunniplaani',
 		},
 		{
-			name: 'liitu',
+			name: 'lisa',
 			type: ApplicationCommandOptionType.Subcommand,
-			description: 'Liitu tunniplaani uuendustega',
+			description: 'Lisa email tunniplaani uuenduste kirjade saamiseks',
 			options: [
 				{
 					name: 'email',
@@ -98,6 +98,18 @@ export = {
 					required: true,
 				},
 			],
+		},
+		{
+			name: 'eemalda',
+			type: ApplicationCommandOptionType.Subcommand,
+			description: 'Eemalda email tunniplaani uuenduste kirjade saamiseks',
+			options: [{
+				name: 'email',
+				type: ApplicationCommandOptionType.String,
+				autocomplete: true,
+				description: 'Email, mille eemaldada',
+				required: true,
+			}],
 		},
 		{
 			name: 'lahku',
@@ -114,6 +126,14 @@ export = {
 			const lesson_filtered = lesson_names.map((lesson, index) => ({ lesson: lesson, index: index.toString() })).filter(data => data.lesson.name.toLowerCase().includes(focused.value.toLowerCase()));
 			const firstTenLessons = lesson_names.map((lesson, index) => ({ name: turnicate(lesson, 90), value: index.toString() })).slice(0, 23);
 			return await int.respond(focused.value !== '' ? lesson_filtered.map(data => ({ name: turnicate(data.lesson, 90), value: data.index })).slice(0, 23) : firstTenLessons);
+		}
+		if (subcommand === 'eemalda') {
+			const focused = int.options.getFocused(true);
+			const emailData = await emailModel.findOne({ userId: int.user.id });
+			const emails = emailData.emails;
+			const email_filtered = emails.map((email) => ({ email: email, index: email })).filter(data => data.email.toLowerCase().includes(focused.value.toLowerCase()));
+			const firstTenEmails = emails.map((email) => ({ name: email, value: email })).slice(0, 23);
+			return await int.respond(focused.value !== '' ? email_filtered.map(data => ({ name: data.email, value: data.email })).slice(0, 23) : firstTenEmails);
 		}
 	},
 	async execute(client, int: ChatInputCommandInteraction) {
@@ -264,7 +284,7 @@ export = {
 				.addFields({ name: 'Tunde kokku', value: `${codeBlock(totalLessonCount.toString())}` }, { name: 'Tunde esimesel rühmal', value: codeBlock(lessonCountForGroup.group_1.toString()), inline: true }, { name: 'Tunde teisel rühmal', value: codeBlock(lessonCountForGroup.group_2.toString()), inline: true }, { name: 'Tunde koos', value: codeBlock(lessonCountForGroup.group_1_2.toString()), inline: true });
 			await int.editReply({ embeds: [embed] });
 		}
-		if (subcommand === 'liitu') {
+		if (subcommand === 'lisa') {
 			await int.deferReply({ ephemeral: true });
 			const email = int.options.getString('email');
 			// Check if email is an actual email with regex
@@ -275,15 +295,34 @@ export = {
 			const emailExists = await emailModel.exists({ userId: int.user.id });
 			if (emailExists) {
 				const emailData = await emailModel.findOne({ userId: int.user.id });
-				emailData.email = email;
+				emailData.emails.push(email);
 				emailData.lastUpdated = new Date();
 				emailData.save();
-				await int.editReply({ content: 'Email edukalt uuendatud' });
+				await int.editReply({ embeds: [new EmbedBuilder().setTitle('Uus email lisatud!').setDescription(codeBlock(emailData.emails.join(', ')))] });
 				return;
 			}
-			const emailData = new emailModel({ email: email, userId: int.user.id, lastUpdated: new Date() });
+			const emailData = new emailModel({ emails: [email], userId: int.user.id, lastUpdated: new Date() });
 			await emailData.save();
-			await int.editReply({ content: 'Email edukalt lisatud' });
+			await int.editReply({ embeds: [new EmbedBuilder().setTitle('Uus email lisatud!').setDescription(codeBlock(email))] });
+		}
+		if (subcommand === 'eemalda') {
+			await int.deferReply({ ephemeral: true });
+			const email = int.options.getString('email');
+			const emailData = await emailModel.findOne({ userId: int.user.id });
+			if (!emailData) {
+				await int.editReply({ content: 'Sa ei ole liitunud tunniplaani uuendustega' });
+				return;
+			}
+			const emailIndex = emailData.emails.findIndex(data => data === email);
+
+			if (emailIndex === -1) {
+				await int.editReply({ content: 'Sellist emaili ei ole sinu listis' });
+				return;
+			}
+			emailData.emails.splice(emailIndex, 1);
+			emailData.lastUpdated = new Date();
+			emailData.save();
+			await int.editReply({ embeds: [new EmbedBuilder().setTitle('Eemail eemaldatud edukalt!').setDescription(codeBlock(emailData.emails.join(', ')))] });
 		}
 		if (subcommand === 'lahku') {
 			await int.deferReply({ ephemeral: true });
@@ -293,7 +332,7 @@ export = {
 				return;
 			}
 			await emailModel.deleteOne({ userId: int.user.id });
-			await int.editReply({ content: 'Email edukalt eemaldatud' });
+			await int.editReply({ content: 'Emailid kustutatud edukalt!' });
 		}
 	},
 } as command;

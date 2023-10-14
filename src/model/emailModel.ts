@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
+import { emailData } from '../util/interfaces';
 
-const emailSchema = new mongoose.Schema({
-	email: String,
+const emailSchema = new mongoose.Schema<emailData>({
+	emails: Array,
 	userId: String,
 	lastUpdated: Date,
 });

@@ -18,4 +18,10 @@ enum week_type {
 enum colors {
 	'embed_color' = '#000000'
 }
-export { command, lesson, partial_lesson, raw_lesson, week_type, colors, LessonGroup };
+
+type emailData = {
+	emails: string[],
+	userId: string,
+	lastUpdated: Date,
+}
+export { command, lesson, partial_lesson, raw_lesson, week_type, colors, LessonGroup, emailData };
