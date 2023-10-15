@@ -82,7 +82,7 @@ const sendEmail = async ({ emails, subject, text, attachments }: {emails: string
 
 const weeksSinceSeptember1 = () => {
 	const today = new Date();
-	const september1 = new Date(today.getFullYear(), 8, 1);
+	const september1 = new Date(today.getFullYear(), 7, 28);
 
 	const timeDiff = today.getTime() - september1.getTime();
 
