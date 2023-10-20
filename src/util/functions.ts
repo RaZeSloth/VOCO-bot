@@ -5,6 +5,8 @@ import { load } from 'cheerio';
 import busTimesJson from '../json/bus_times.json';
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
+import { pdf } from 'pdf-to-img';
+import Mail from 'nodemailer/lib/mailer';
 
 const useModal: (sourceInteraction: CommandInteraction| ContextMenuCommandInteraction | MessageComponentInteraction, modal: ModalBuilder, timeout?: number,) => Promise<ModalSubmitInteraction | null> = async (commandInteraction, modal, timeout = 2 * 60 * 1000) => {
 	await commandInteraction.showModal(modal);
@@ -62,7 +64,7 @@ const getLastLessonBuss = (lastLessonTime: string, bussTimes: string[]): {time: 
 	}
 };
 
-const sendEmail = async ({ emails, subject, text, attachments }: {emails: string[], subject: string, text?: string, attachments?: string[]}) => {
+const sendEmail = async ({ emails, subject, text, html, attachments }: {emails: string[], subject: string, text?: string, html?: string, attachments?: Mail.Attachment[]}) => {
 	const transporter = nodemailer.createTransport({
 		service: 'gmail',
 		auth: {
@@ -70,12 +72,13 @@ const sendEmail = async ({ emails, subject, text, attachments }: {emails: string
 			pass: process.env.email_password,
 		},
 	});
-	const mailOptions = {
+	const mailOptions: Mail.Options = {
 		from: process.env.email,
 		to: emails.join(', '),
 		subject,
 		text: text ? text : '',
-		attachments: attachments?.map((attachment) => ({ path: attachment })),
+		html: html ? html : '',
+		attachments: attachments ? attachments : [],
 	};
 	await transporter.sendMail(mailOptions);
 };
@@ -90,4 +93,11 @@ const weeksSinceSeptember1 = () => {
 
 	return weeksDiff;
 };
-export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1 };
+const generateImgFromPDF = async (path: string): Promise<Buffer> => {
+	const data = await pdf(path, { scale: 2 });
+	for await (const image of data) {
+		return image;
+	}
+};
+
+export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1, generateImgFromPDF };

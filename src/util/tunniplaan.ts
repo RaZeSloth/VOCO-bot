@@ -5,7 +5,7 @@ import { lesson, partial_lesson, raw_lesson, week_type } from './interfaces';
 import { client } from '..';
 import { AttachmentBuilder, codeBlock, EmbedBuilder, GuildTextBasedChannel, time, TimestampStyles } from 'discord.js';
 
-import { getBussTime, getFoodForToday, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1 } from './functions';
+import { generateImgFromPDF, getBussTime, getFoodForToday, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1 } from './functions';
 import lessonsModel from '../model/lessonsModel';
 import axios from 'axios';
 import fs from 'fs';
@@ -291,7 +291,9 @@ export = { init: async () => {
 		writer.on('finish', async () => {
 			const emails = await emailModel.find();
 			const user_emails = emails.map(email => email.emails).flat();
-			await sendEmail({ emails: user_emails, subject: `${weeksSinceSeptember1()}. nädala tunniplaan`, attachments: ['tunniplaan.pdf'] });
+			const pdf_image = await generateImgFromPDF('tunniplaan.pdf');
+			fs.writeFileSync('tunniplaan.png', pdf_image);
+			await sendEmail({ emails: user_emails, subject: `${weeksSinceSeptember1()}. nädala tunniplaan`, html: '<img src="cid:tunniplaan_pilt" alt="Tunniplaan" style="display: block; margin-left: auto; margin-right: auto" loading="lazy"/>', attachments: [{ path: 'tunniplaan.pdf' }, { path: 'tunniplaan.png', cid: 'tunniplaan_pilt' }] });
 		});
 	});
 }, getAllSchoolTimesAndLessons, getAllSchoolTimesAndLessons_old };
