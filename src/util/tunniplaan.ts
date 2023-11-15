@@ -66,7 +66,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 	const page = await b.newPage();
 	const raw_lessons_objects: raw_lesson[] = [];
 	const date_data = new Date(options?.getNextWeek ? new Date().getTime() + 7 * 24 * 60 * 60 * 1000 : new Date().getTime());
-	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=1692&nadal=${date_data.getDate()}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
+	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=1692&nadal=${date_data.getDate() + 1}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
 	await page.goto(url, {
 		waitUntil: 'load',
 	});
@@ -277,16 +277,16 @@ const startCronJobs = async () => {
 
 export = { init: async () => {
 	await startCronJobs();
-	cron.schedule('0 0 * * *', async () => {
+	cron.schedule('0 22 * * *', async () => {
 		cron_jobs.forEach(job => job.stop());
 		cron_jobs.clear();
 		await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).bulkDelete(100).catch(() => null);
 		await startCronJobs();
 	}, { timezone: 'Europe/Tallinn' });
-	cron.schedule('0 0 * * 1', async () => {
+	cron.schedule('0 22 * * 0', async () => {
 		const date = new Date();
 		const writer = fs.createWriteStream('tunniplaan.pdf');
-		const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=1692&nadal=${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`, { responseType: 'stream' });
+		const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=1692&nadal=${date.getDate() + 1}.${date.getMonth() + 1}.${date.getFullYear()}`, { responseType: 'stream' });
 		response.data.pipe(writer);
 		writer.on('finish', async () => {
 			const emails = await emailModel.find();
