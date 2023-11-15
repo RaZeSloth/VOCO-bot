@@ -66,7 +66,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 	const page = await b.newPage();
 	const raw_lessons_objects: raw_lesson[] = [];
 	const date_data = new Date(options?.getNextWeek ? new Date().getTime() + 7 * 24 * 60 * 60 * 1000 : new Date().getTime());
-	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=1692&nadal=${date_data.getDate() + 1}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
+	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=1692&nadal=${date_data.getDate()}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
 	await page.goto(url, {
 		waitUntil: 'load',
 	});
