@@ -277,7 +277,7 @@ const startCronJobs = async () => {
 
 export = { init: async () => {
 	await startCronJobs();
-	cron.schedule('0 22 * * *', async () => {
+	cron.schedule('0 0 * * *', async () => {
 		cron_jobs.forEach(job => job.stop());
 		cron_jobs.clear();
 		await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).bulkDelete(100).catch(() => null);
