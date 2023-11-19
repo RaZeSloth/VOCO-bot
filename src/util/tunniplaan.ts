@@ -283,8 +283,9 @@ export = { init: async () => {
 		await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).bulkDelete(100).catch(() => null);
 		await startCronJobs();
 	}, { timezone: 'Europe/Tallinn' });
-	cron.schedule('0 0 * * 1', async () => {
+	cron.schedule('0 22 * * 0', async () => {
 		const date = new Date();
+		date.setDate(date.getDate() + 1)
 		const writer = fs.createWriteStream('tunniplaan.pdf');
 		const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=1692&nadal=${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`, { responseType: 'stream' });
 		response.data.pipe(writer);
