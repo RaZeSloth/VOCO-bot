@@ -294,7 +294,7 @@ export = { init: async () => {
 			const user_emails = emails.map(email => email.emails).flat();
 			const pdf_image = await generateImgFromPDF('tunniplaan.pdf');
 			fs.writeFileSync('tunniplaan.png', pdf_image);
-			await sendEmail({ emails: user_emails, subject: `${weeksSinceSeptember1()}. nädala tunniplaan`, html: '<img src="cid:tunniplaan_pilt" alt="Tunniplaan" style="display: block; margin-left: auto; margin-right: auto" loading="lazy"/>', attachments: [{ path: 'tunniplaan.pdf' }, { path: 'tunniplaan.png', cid: 'tunniplaan_pilt' }] });
+			await sendEmail({ emails: user_emails, subject: `${weeksSinceSeptember1(date)}. nädala tunniplaan`, html: '<img src="cid:tunniplaan_pilt" alt="Tunniplaan" style="display: block; margin-left: auto; margin-right: auto" loading="lazy"/>', attachments: [{ path: 'tunniplaan.pdf' }, { path: 'tunniplaan.png', cid: 'tunniplaan_pilt' }] });
 		});
 	});
 }, getAllSchoolTimesAndLessons, getAllSchoolTimesAndLessons_old };

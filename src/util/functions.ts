@@ -83,11 +83,10 @@ const sendEmail = async ({ emails, subject, text, html, attachments }: {emails: 
 	await transporter.sendMail(mailOptions);
 };
 
-const weeksSinceSeptember1 = () => {
-	const today = new Date();
-	const september1 = new Date(today.getFullYear(), 7, 28);
+const weeksSinceSeptember1 = (date: Date) => {
+	const september1 = new Date(date.getFullYear(), 7, 28);
 
-	const timeDiff = today.getTime() - september1.getTime();
+	const timeDiff = date.getTime() - september1.getTime();
 
 	const weeksDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24 * 7));
 
