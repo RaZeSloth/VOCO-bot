@@ -31,6 +31,7 @@ export = {
 		},
 	],
 	async execute(client, int: ChatInputCommandInteraction) {
+		if (int.guild.id !== '1021468029726494751') return await int.reply({ content: 'See käsk töötab ainult ITA22 serveris!', ephemeral: true });
 		const grupp = int.options.getString('grupp');
 		const nimi = int.options.getString('nimi');
 		const kasutaja = (int.member as GuildMember);
