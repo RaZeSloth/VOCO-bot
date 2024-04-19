@@ -1,12 +1,12 @@
 import { VocoBot } from '../util/Bot';
-import glob from 'glob';
+import { sync } from 'glob';
 import path from 'path';
 import { yellow, green } from 'chalk';
 import { command } from '../util/interfaces';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ActionRow, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, TextBasedChannel } from 'discord.js';
 export = async (client: VocoBot) => {
-	const failid = glob.sync(path.resolve(__dirname, '../commands/**/*.{js,ts}'));
+	const failid = sync(path.resolve(__dirname, '../commands/**/*.{js,ts}'));
 	if (failid.length <= 0) return console.log(yellow('Pole kommande lol'));
 	const slashCmdArray: command[] = [];
 	for (const file of failid) {
