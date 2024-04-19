@@ -28,7 +28,8 @@
     "pdf-to-img": "^2.1.2",
     "puppeteer": "19.8.5",
     "sodium": "^3.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "wrap-ansi": "7.0.0"
   },
   "scripts": {
     "lint": "yarn run eslint .",
