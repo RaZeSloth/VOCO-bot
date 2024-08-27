@@ -84,7 +84,7 @@ const sendEmail = async ({ emails, subject, text, html, attachments }: {emails: 
 };
 
 const weeksSinceSeptember1 = (date: Date) => {
-	const september1 = new Date(2023, 7, 28);
+	const september1 = new Date(2024, 7, 26);
 
 	const timeDiff = date.getTime() - september1.getTime();
 
