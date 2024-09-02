@@ -45,5 +45,8 @@
     "eslint-plugin-promise": "^6.1.1",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2"
+  },
+  "resolutions": {
+      "string-width": "4.2.3"
   }
 }
