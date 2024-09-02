@@ -17,7 +17,7 @@
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
     "eslint": "8",
-    "glob": "^10.3.12",
+    "glob": "^11.0.0",
     "libsodium-wrappers": "^0.7.13",
     "mongoose": "^8.3.2",
     "node-cron": "^3.0.3",
