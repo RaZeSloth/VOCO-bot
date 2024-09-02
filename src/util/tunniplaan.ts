@@ -212,13 +212,13 @@ const getCrons = (options: { lesson_data: lesson, getRawDate?: true }) => {
 	const eating_time = options.lesson_data.lessons.some(lesson => lesson.name.includes('Söömine'));
 	if (options?.getRawDate) {
 		if (eating_time) {
-			date.setMinutes(date.getMinutes() + 35);
+			date.setMinutes(date.getMinutes() + 5);
 		}
 		return { date, cron: `${date.getMinutes()} ${date.getHours()} * * *` };
 	}
 	date.setMinutes(date.getMinutes() - 15);
 	if (eating_time) {
-		date.setMinutes(date.getMinutes() + 35);
+		date.setMinutes(date.getMinutes() + 20);
 	}
 	return { string: `${date.getMinutes()} ${date.getHours()} * * *`, date };
 };
@@ -235,7 +235,7 @@ const startCronJobs = async () => {
 				const notification_embed = new EmbedBuilder()
 					.setTitle(lessonData.time + ` (${time(time_until_les.date, TimestampStyles.RelativeTime)})`)
 					.setColor('#000000');
-				notification_embed.setDescription(codeBlock(`${lessonData.lessons.map(data => `${data.name} - ${data.lesson_group}`).join('\n----------------------------------\n')}`));
+				notification_embed.setDescription(codeBlock(`${lessonData.lessons.map(data => `${data.name}${data?.lesson_group ? ` - ${data.lesson_group}` : ''}`).join('\n----------------------------------\n')}`));
 				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1029335363040329749>', embeds: [notification_embed] });
 				job.stop();
 			}, { timezone: 'Europe/Tallinn' });
@@ -260,16 +260,16 @@ const startCronJobs = async () => {
 		cron_jobs.add(bussTimeNotification);
 		console.log(green(`Buss notification at: ${lastLesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 
-		const food = cron.schedule('45 11 * * *', async () => {
+		const food = cron.schedule('15 12 * * *', async () => {
 			const embed = new EmbedBuilder()
-				.setTitle('Söömine! 12:00 - 12:30')
+				.setTitle('Söömine! 12:30 - 13:00')
 				.setColor('#000000');
 			const food = await getFoodForToday();
 			embed.setImage('attachment://sook.png');
 			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ embeds: [embed], files: [new AttachmentBuilder(food, { name: 'sook.png' })] });
 		}, { timezone: 'Europe/Tallinn' });
 		cron_jobs.add(food);
-		console.log(green('Food at 11:45 is scheduled'));
+		console.log(green('Food at 12:15 is scheduled'));
 	} else {
 		console.log(yellow('Weekend day, skipping...'));
 	}
