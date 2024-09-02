@@ -1,20 +1,20 @@
-import { ChatInputCommandInteraction, Client, codeBlock, Collection, EmbedBuilder, GatewayIntentBits, GuildTextBasedChannel } from 'discord.js';
+import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import path from 'path';
-import { colors, command, lesson } from './interfaces';
-import dt from 'distube';
+import { command, lesson } from './interfaces';
+// import dt from 'distube';
 import mongoose from 'mongoose';
 import chalk from 'chalk';
 class VocoBot extends Client {
 	commands: Collection<string, command>;
 	cache: Collection<number, lesson[][]>;
-	music: dt;
+	// music: dt;
 	constructor() {
 		super({ intents: [GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 		this.commands = new Collection();
 		this.cache = new Collection();
 	}
 	async dt_launch() {
-		const distube = new dt(this, {
+		/* const distube = new dt(this, {
 			searchSongs: 0,
 			searchCooldown: 0,
 			emitNewSongOnly: true,
@@ -38,7 +38,7 @@ class VocoBot extends Client {
 			(this.channels.cache.get('1035257987364827156') as GuildTextBasedChannel).send({ embeds: [new EmbedBuilder().setDescription(codeBlock(err.message)).setColor(colors.embed_color), new EmbedBuilder().setDescription(codeBlock(err.stack)).setColor(colors.embed_color)] });
 		});
 
-		this.music = distube;
+		this.music = distube; */
 	}
 	async db_init() {
 		await mongoose.connect(process.env.dburi, { appName: 'voco-bot' });
