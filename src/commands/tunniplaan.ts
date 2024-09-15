@@ -118,11 +118,11 @@ export = {
 			type: ApplicationCommandOptionType.Subcommand,
 			description: 'Lahku tunniplaani uuendustest',
 		},
-		{
+		/* {
 			name: 'kiri',
 			type: ApplicationCommandOptionType.Subcommand,
 			description: 'Saada kiri kõigi emailide peale (AINULT MIKULE)',
-		},
+		}, */
 	],
 	async autocomplete(client, int) {
 		const subcommand = int.options.getSubcommand();
