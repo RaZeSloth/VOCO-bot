@@ -1,9 +1,11 @@
-import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
+import { ApplicationIntegrationType, AttachmentBuilder, EmbedBuilder, InteractionContextType } from 'discord.js';
 import { command } from '../util/interfaces';
 
 export = {
 	name: 'söök',
 	description: 'Näe söögimenüüd',
+	integration_types: [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall],
+	contexts: [InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel],
 	async execute(client, int) {
 		await int.deferReply({ ephemeral: true });
 		const embed = new EmbedBuilder()

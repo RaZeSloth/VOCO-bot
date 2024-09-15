@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ApplicationIntegrationType, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, InteractionContextType, StringSelectMenuBuilder } from 'discord.js';
 import { command, lesson, week_type } from '../util/interfaces';
 import lessonsModel from '../model/lessonsModel';
 import { sanitizeString } from '../util/functions';
@@ -30,6 +30,8 @@ export = {
 	name: 'tunniplaan',
 	type: ApplicationCommandType.ChatInput,
 	description: 'Näe nädalate tunniplaani',
+	integration_types: [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall],
+	contexts: [InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel],
 	options: [
 		{
 			name: 'näita',
@@ -115,6 +117,11 @@ export = {
 			name: 'lahku',
 			type: ApplicationCommandOptionType.Subcommand,
 			description: 'Lahku tunniplaani uuendustest',
+		},
+		{
+			name: 'kiri',
+			type: ApplicationCommandOptionType.Subcommand,
+			description: 'Saada kiri kõigi emailide peale (AINULT MIKULE)',
 		},
 	],
 	async autocomplete(client, int) {
@@ -333,6 +340,9 @@ export = {
 			}
 			await emailModel.deleteOne({ userId: int.user.id });
 			await int.editReply({ content: 'Emailid kustutatud edukalt!' });
+		}
+		if (subcommand === 'kiri') {
+			await int.deferReply({ ephemeral: true });
 		}
 	},
 } as command;

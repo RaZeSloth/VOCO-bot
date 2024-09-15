@@ -14,7 +14,7 @@
     "axios": "^1.6.8",
     "chalk": "4.1.2",
     "cheerio": "^1.0.0-rc.12",
-    "discord.js": "^14.14.1",
+    "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
     "eslint": "8",
     "glob": "^10.3.12",
@@ -47,6 +47,7 @@
     "lint-staged": "^15.2.2"
   },
   "resolutions": {
-      "string-width": "4.2.3"
+    "wrap-ansi": "7.0.0",
+    "string-width": "4.2.3"
   }
 }
