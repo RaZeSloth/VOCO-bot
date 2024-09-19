@@ -43,6 +43,11 @@ export = {
 					description: 'Näita järgmise nädala tunniplaani',
 					type: ApplicationCommandOptionType.Boolean,
 				},
+				{
+					name: 'läbipaistvus',
+					description: 'Näita tunniplaani läbipaistvana või mitte',
+					type: ApplicationCommandOptionType.Boolean,
+				},
 			],
 		},
 		{
@@ -146,7 +151,8 @@ export = {
 	async execute(client, int: ChatInputCommandInteraction) {
 		const subcommand = int.options.getSubcommand();
 		if (subcommand === 'näita') {
-			await int.deferReply({ ephemeral: true });
+			const transparent = int.options.getBoolean('läbipaistvus');
+			await int.deferReply({ ephemeral: transparent ?? true });
 			const day = new Date().getDay();
 			const date = Date.now();
 			let lesson_array: lesson[][] = [];
