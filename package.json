@@ -26,7 +26,7 @@
     "puppeteer": "19.8.5",
     "sodium": "^3.0.2",
     "typescript": "^5.4.5",
-    "wrap-ansi": "7.0.0"
+    "wrap-ansi": "9.0.0"
   },
   "scripts": {
     "lint": "yarn run eslint .",
@@ -47,7 +47,7 @@
     "lint-staged": "^15.2.2"
   },
   "resolutions": {
-    "wrap-ansi": "7.0.0",
+    "wrap-ansi": "9.0.0",
     "string-width": "4.2.3"
   }
 }
