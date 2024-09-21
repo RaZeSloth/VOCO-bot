@@ -295,6 +295,9 @@ export = { init: async () => {
 			const pdf_image = await generateImgFromPDF('tunniplaan.pdf');
 			fs.writeFileSync('tunniplaan.png', pdf_image);
 			await sendEmail({ emails: user_emails, subject: `${weeksSinceSeptember1(date)}. nädala tunniplaan`, html: '<img src="cid:tunniplaan_pilt" alt="Tunniplaan" style="display: block; margin-left: auto; margin-right: auto" loading="lazy"/>', attachments: [{ path: 'tunniplaan.pdf' }, { path: 'tunniplaan.png', cid: 'tunniplaan_pilt' }] });
+			const attachmentDiscord = new AttachmentBuilder(pdf_image, { name: 'tunniplaan.png' });
+			const channel = await client.channels.fetch('1287104198491766874');
+			if (channel.isSendable()) await channel.send({ content: `${weeksSinceSeptember1(date)}. nädala tunniplaan`, files: [attachmentDiscord] });
 		});
 	});
 }, getAllSchoolTimesAndLessons, getAllSchoolTimesAndLessons_old };

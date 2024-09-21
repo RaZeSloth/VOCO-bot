@@ -1,9 +1,9 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ApplicationIntegrationType, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, InteractionContextType, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ApplicationIntegrationType, AttachmentBuilder, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, InteractionContextType, StringSelectMenuBuilder } from 'discord.js';
 import { command, lesson, week_type } from '../util/interfaces';
 import lessonsModel from '../model/lessonsModel';
-import { sanitizeString } from '../util/functions';
+import { sanitizeString, sendEmail, weeksSinceSeptember1 } from '../util/functions';
 import emailModel from '../model/emailModel';
-
+import fs from 'fs';
 const days = [
 	{
 		label: 'Esmaspäev',
@@ -123,11 +123,11 @@ export = {
 			type: ApplicationCommandOptionType.Subcommand,
 			description: 'Lahku tunniplaani uuendustest',
 		},
-		/* {
-			name: 'kiri',
+		{
+			name: 'pilt',
 			type: ApplicationCommandOptionType.Subcommand,
-			description: 'Saada kiri kõigi emailide peale (AINULT MIKULE)',
-		}, */
+			description: 'Näita tunniplaani pilti',
+		},
 	],
 	async autocomplete(client, int) {
 		const subcommand = int.options.getSubcommand();
@@ -311,12 +311,15 @@ export = {
 				emailData.emails.push(email);
 				emailData.lastUpdated = new Date();
 				emailData.save();
-				await int.editReply({ embeds: [new EmbedBuilder().setTitle('Uus email lisatud!').setDescription(codeBlock(emailData.emails.join(', ')))] });
+				await sendEmail({ emails: [email], subject: `${weeksSinceSeptember1(new Date())}. nädala tunniplaan`, html: '<img src="cid:tunniplaan_pilt" alt="Tunniplaan" style="display: block; margin-left: auto; margin-right: auto" loading="lazy"/>', attachments: [{ path: 'tunniplaan.pdf' }, { path: 'tunniplaan.png', cid: 'tunniplaan_pilt' }] });
+				await int.editReply({ embeds: [new EmbedBuilder().setTitle('Uus email lisatud ja kiri saadetud!').setDescription(codeBlock(emailData.emails.join(', ')))] });
 				return;
 			}
 			const emailData = new emailModel({ emails: [email], userId: int.user.id, lastUpdated: new Date() });
 			await emailData.save();
-			await int.editReply({ embeds: [new EmbedBuilder().setTitle('Uus email lisatud!').setDescription(codeBlock(email))] });
+			await sendEmail({ emails: [email], subject: `${weeksSinceSeptember1(new Date())}. nädala tunniplaan`, html: '<img src="cid:tunniplaan_pilt" alt="Tunniplaan" style="display: block; margin-left: auto; margin-right: auto" loading="lazy"/>', attachments: [{ path: 'tunniplaan.pdf' }, { path: 'tunniplaan.png', cid: 'tunniplaan_pilt' }] });
+
+			await int.editReply({ embeds: [new EmbedBuilder().setTitle('Uus email lisatud ja kiri saadetud!').setDescription(codeBlock(email))] });
 		}
 		if (subcommand === 'eemalda') {
 			await int.deferReply({ ephemeral: true });
@@ -347,8 +350,11 @@ export = {
 			await emailModel.deleteOne({ userId: int.user.id });
 			await int.editReply({ content: 'Emailid kustutatud edukalt!' });
 		}
-		if (subcommand === 'kiri') {
+		if (subcommand === 'pilt') {
 			await int.deferReply({ ephemeral: true });
+			const file = fs.readFileSync('./tunniplaan.png');
+			const attachment = new AttachmentBuilder(file);
+			await int.editReply({ files: [attachment], content: `${weeksSinceSeptember1(new Date())}. nädala tunniplaan` });
 		}
 	},
 } as command;
