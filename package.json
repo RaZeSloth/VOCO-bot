@@ -23,7 +23,7 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",
     "pdf-to-img": "^2.1.2",
-    "puppeteer": "19.8.5",
+    "puppeteer": "23.6.1",
     "sodium": "^3.0.2",
     "typescript": "^5.4.5",
     "wrap-ansi": "7.0.0"
