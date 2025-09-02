@@ -1,0 +1,11 @@
+services:
+  voco-bot:
+    build: .
+    container_name: bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - .:/bot
+      - /bot/node_modules
+    command: ["yarn", "dev"]
