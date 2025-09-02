@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer';
 import 'dotenv/config';
 import { pdf } from 'pdf-to-img';
 import Mail from 'nodemailer/lib/mailer';
+import { Grupp } from './interfaces';
 
 const useModal: (sourceInteraction: CommandInteraction| ContextMenuCommandInteraction | MessageComponentInteraction, modal: ModalBuilder, timeout?: number,) => Promise<ModalSubmitInteraction | null> = async (commandInteraction, modal, timeout = 2 * 60 * 1000) => {
 	await commandInteraction.showModal(modal);
@@ -18,7 +19,7 @@ function sanitizeString(str: string) {
 }
 
 const getFoodForToday = async (): Promise<Buffer> => {
-	const b = await Puppeteer.launch({ headless: true, defaultViewport: { width: 1920, height: 1080 } });
+	const b = await Puppeteer.launch({ headless: true, defaultViewport: { width: 1920, height: 1080 }, args: ['--no-sandbox'] });
 	const apiURL = 'https://siseveeb.voco.ee/veebivormid/restorani_menuu';
 	const page = await b.newPage();
 	await page.goto(apiURL);
@@ -92,11 +93,17 @@ const weeksSinceSeptember1 = (date: Date) => {
 
 	return weeksDiff;
 };
-const generateImgFromPDF = async (path: string): Promise<Buffer> => {
+const generateImgFromPDF = async (path: string | Buffer): Promise<Buffer> => {
 	const data = await pdf(path, { scale: 2 });
 	for await (const image of data) {
 		return image;
 	}
 };
 
-export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1, generateImgFromPDF };
+const getGroups = async (): Promise<Grupp[]> => {
+	const response = await fetch('https://siseveeb.voco.ee/veebilehe_andmed/oppegrupid?seisuga=not_ended');
+	const data = await response.json();
+	return data.grupid;
+};
+
+export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1, generateImgFromPDF, getGroups };

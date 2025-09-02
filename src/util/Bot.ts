@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import chalk from 'chalk';
 class VocoBot extends Client {
 	commands: Collection<string, command>;
-	cache: Collection<number, lesson[][]>;
+	cache: Collection<string, lesson[][]>;
 	// music: dt;
 	constructor() {
 		super({ intents: [GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });

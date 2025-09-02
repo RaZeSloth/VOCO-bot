@@ -24,4 +24,11 @@ type emailData = {
 	userId: string,
 	lastUpdated: Date,
 }
-export { command, lesson, partial_lesson, raw_lesson, week_type, colors, LessonGroup, emailData };
+type Grupp = {
+  id: `${number}`;
+  tahis: string;
+  oppekava: string;
+  kursus: number;
+};
+
+export { command, lesson, partial_lesson, raw_lesson, week_type, colors, LessonGroup, emailData, Grupp };

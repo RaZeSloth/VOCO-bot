@@ -1,9 +1,8 @@
 import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ApplicationIntegrationType, AttachmentBuilder, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, InteractionContextType, StringSelectMenuBuilder } from 'discord.js';
-import { command, lesson, week_type } from '../util/interfaces';
+import { command, Grupp, lesson, week_type } from '../util/interfaces';
 import lessonsModel from '../model/lessonsModel';
-import { sanitizeString, sendEmail, weeksSinceSeptember1 } from '../util/functions';
+import { getGroups, sanitizeString, sendEmail, weeksSinceSeptember1 } from '../util/functions';
 import emailModel from '../model/emailModel';
-import fs from 'fs';
 const days = [
 	{
 		label: 'Esmaspäev',
@@ -26,6 +25,7 @@ const days = [
 		value: '5',
 	},
 ];
+
 export = {
 	name: 'tunniplaan',
 	type: ApplicationCommandType.ChatInput,
@@ -48,9 +48,16 @@ export = {
 					description: 'Näita tunniplaani läbipaistvana või mitte',
 					type: ApplicationCommandOptionType.Boolean,
 				},
+				{
+					name: 'grupp',
+					description: 'Grupp, mille tunniplaani näidata',
+					type: ApplicationCommandOptionType.String,
+					required: false,
+					autocomplete: true
+				}
 			],
 		},
-		{
+/* 		{
 			name: 'seadista',
 			description: 'Seadista tunniplaani gruppe',
 			type: ApplicationCommandOptionType.Subcommand,
@@ -87,7 +94,7 @@ export = {
 					],
 				},
 			],
-		},
+		}, */
 		{
 			name: 'analüüsi',
 			type: ApplicationCommandOptionType.Subcommand,
@@ -96,7 +103,7 @@ export = {
 		{
 			name: 'lisa',
 			type: ApplicationCommandOptionType.Subcommand,
-			description: 'Lisa email tunniplaani uuenduste kirjade saamiseks',
+			description: 'Lisa email tunniplaani uuenduste kirjade saamiseks (ITA22)',
 			options: [
 				{
 					name: 'email',
@@ -127,6 +134,21 @@ export = {
 			name: 'pilt',
 			type: ApplicationCommandOptionType.Subcommand,
 			description: 'Näita tunniplaani pilti',
+			options: [
+				{
+					name: 'grupp',
+					type: ApplicationCommandOptionType.String,
+					description: 'Grupp, mille tunniplaani pilti näidata',
+					required: true,
+					autocomplete: true
+				},
+				{
+					name: 'läbipaistvus',
+					type: ApplicationCommandOptionType.Boolean,
+					description: 'Näita tunniplaani läbipaistvana või mitte',
+					required: false
+				}
+			]
 		},
 	],
 	async autocomplete(client, int) {
@@ -147,11 +169,31 @@ export = {
 			const firstTenEmails = emails.map((email) => ({ name: email, value: email })).slice(0, 23);
 			return await int.respond(focused.value !== '' ? email_filtered.map(data => ({ name: data.email, value: data.email })).slice(0, 23) : firstTenEmails);
 		}
+		if (subcommand === 'näita' || subcommand === 'pilt') {
+			const focused = int.options.getFocused(true);
+			// API https://siseveeb.voco.ee/veebilehe_andmed/oppegrupid?seisuga=not_ended
+
+			const groups = await getGroups();
+
+			const filteredGroups: Grupp[] = groups.filter(group => group.tahis.toLowerCase().includes(focused.value.toLowerCase()))
+			const firstTenGroups = filteredGroups.map((group: Grupp) => ({ name: `${group.tahis}`, value: group.id.toString() })).slice(0, 23);
+			return await int.respond(focused.value !== '' ? firstTenGroups : filteredGroups.map(group => ({ name: `${group.tahis}`, value: group.id.toString() })).slice(0, 23));
+		}
 	},
 	async execute(client, int: ChatInputCommandInteraction) {
 		const subcommand = int.options.getSubcommand();
 		if (subcommand === 'näita') {
 			const transparent = int.options.getBoolean('läbipaistvus');
+			let grupp = int.options.getString('grupp');
+			if (!grupp) grupp = '1692';
+			const groups = await getGroups();
+
+			const findGroup = groups.find(g => g.id.toString() === grupp || g.tahis.toLowerCase() === grupp.toLowerCase());
+
+			if (!findGroup?.id) {
+				await int.reply({ content: 'Gruppi ei leitud.', ephemeral: true });
+				return;
+			}
 			await int.deferReply({ ephemeral: transparent ?? true });
 			const day = new Date().getDay();
 			const date = Date.now();
@@ -166,18 +208,18 @@ export = {
 				let lessons: lesson[][];
 				const next_week_selected: boolean = int.options.getBoolean('järgmine_nädal');
 				if (next_week_selected) {
-					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true });
-					client.cache.set(week_type.next_week, lessons);
+					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true, grupp: findGroup.id });
+					client.cache.set(`${grupp}_${week_type.next_week}`, lessons);
 
-				} else if (client.cache.has(week_type.this_week)) {
-					lessons = client.cache.get(week_type.this_week);
+				} else if (client.cache.has(`${grupp}_${week_type.this_week}`)) {
+					lessons = client.cache.get(`${grupp}_${week_type.this_week}`);
 				} else {
-					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons();
-					client.cache.set(week_type.this_week, lessons);
+					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ grupp: findGroup.id });
+					client.cache.set(`${grupp}_${week_type.this_week}`, lessons);
 				}
 				lesson_array = lessons;
 				embed = new EmbedBuilder()
-					.setTitle('Tunniplaan')
+					.setTitle(`Tunniplaan (${findGroup.tahis})`)
 					.setColor('#000000')
 					.setDescription(next_week_selected ? 'See on järgmise esmaspäevase päeva tunniplaan' : 'See on tänane tunniplaan');
 				if (lessons[day - 1] && !next_week_selected) {
@@ -192,14 +234,14 @@ export = {
 				}
 			} else {
 				let lessons: lesson[][];
-				if (client.cache.has(week_type.next_week)) {
-					lessons = client.cache.get(week_type.next_week);
+				if (client.cache.has(`${grupp}_${week_type.next_week}`)) {
+					lessons = client.cache.get(`${grupp}_${week_type.next_week}`);
 				} else {
-					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true });
+					lessons = await (await import('../util/tunniplaan')).getAllSchoolTimesAndLessons({ getNextWeek: true, grupp: findGroup.id });
 				}
 				lesson_array = lessons;
 				embed = new EmbedBuilder()
-					.setTitle('Tunniplaan')
+					.setTitle(`Tunniplaan (${findGroup.tahis})`)
 					.setColor('#000000')
 					.setDescription('See on järgmise nädala esmaspäeva tunniplaan');
 				for (const lesson of lessons[0]) {
@@ -215,7 +257,7 @@ export = {
 				const currentDay = new Date().getDay();
 				const next_week_selected: boolean = int.options.getBoolean('järgmine_nädal');
 				const embed = new EmbedBuilder()
-					.setTitle('Tunniplaan')
+					.setTitle(`Tunniplaan (${findGroup.tahis})`)
 					.setColor('#000000')
 					.setDescription(`See on ${(currentDay >= 1 && currentDay <= 5 && !next_week_selected) ? '' : 'järgmise'} ${days[day - 1].label.toLowerCase()}${day !== 5 ? 'ase' : 'se'} päeva tunniplaan`);
 				if (lesson_array[day - 1]) {
@@ -226,7 +268,7 @@ export = {
 				await i.update({ embeds: [embed], components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(updatedSelect)] });
 			});
 		}
-		if (subcommand === 'seadista') {
+		/* if (subcommand === 'seadista') {
 			if (int.user.id !== '777474453114191882') {
 				await int.reply({ ephemeral: true, content: 'Praegast on see command ainult Mikule' });
 				return;
@@ -260,8 +302,8 @@ export = {
 				.setColor('#000000')
 				.setDescription(`Tund ${codeBlock(tund.lessonName)} on nüüd ${codeBlock(grupp)}`);
 			await int.reply({ ephemeral: true, embeds: [embed] });
-		}
-		if (subcommand === 'analüüsi') {
+		} */
+		/* if (subcommand === 'analüüsi') {
 			await int.deferReply({ ephemeral: true });
 			const day = new Date().getDay();
 			let lessons: lesson[][];
@@ -296,7 +338,7 @@ export = {
 				// .setDescription(`Tunde kokku: ${codeBlock(totalLessonCount.toString())}\nTunde esimesel rühmal: ${codeBlock(lessonCountForGroup.group_1.toString())}\nTunde teisel rühmal: ${codeBlock(lessonCountForGroup.group_2.toString())}\nTunde koos: ${codeBlock(lessonCountForGroup.group_1_2.toString())}`);
 				.addFields({ name: 'Tunde kokku', value: `${codeBlock(totalLessonCount.toString())}` }, { name: 'Tunde esimesel rühmal', value: codeBlock(lessonCountForGroup.group_1.toString()), inline: true }, { name: 'Tunde teisel rühmal', value: codeBlock(lessonCountForGroup.group_2.toString()), inline: true }, { name: 'Tunde koos', value: codeBlock(lessonCountForGroup.group_1_2.toString()), inline: true });
 			await int.editReply({ embeds: [embed] });
-		}
+		} */
 		if (subcommand === 'lisa') {
 			await int.deferReply({ ephemeral: true });
 			const email = int.options.getString('email');
@@ -351,9 +393,16 @@ export = {
 			await int.editReply({ content: 'Emailid kustutatud edukalt!' });
 		}
 		if (subcommand === 'pilt') {
-			await int.deferReply({ ephemeral: true });
-			const file = fs.readFileSync('./tunniplaan.png');
-			const attachment = new AttachmentBuilder(file);
+			const transparent = int.options.getBoolean('läbipaistvus');
+			await int.deferReply({ ephemeral: transparent ?? true });
+			const grupp_id = int.options.getString('grupp');
+			const grupps = await getGroups();
+			if (!grupps.find(g => g.id.toString() === grupp_id || g.tahis.toLowerCase() === grupp_id.toLowerCase())) {
+				await int.editReply({ content: 'Sellist gruppi ei leitud' });
+				return;
+			}
+			const pdf_image = await (await import('../util/tunniplaan')).getTunniplaanImage(grupp_id);
+			const attachment = new AttachmentBuilder(pdf_image);
 			await int.editReply({ files: [attachment], content: `${weeksSinceSeptember1(new Date())}. nädala tunniplaan` });
 		}
 	},

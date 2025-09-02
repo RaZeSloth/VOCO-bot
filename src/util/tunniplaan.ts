@@ -15,7 +15,7 @@ const cron_jobs: Set<ScheduledTask> = new Set();
 const getAllSchoolTimesAndLessons_old = async (options?: { getNextWeek?: boolean }): Promise<partial_lesson[]> => {
 	const lesson_array: string[] = [];
 	const times_array: string[] = [];
-	const b = await Puppeteer.launch({ headless: true });
+	const b = await Puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 	const page = await b.newPage();
 	await page.goto('https://voco.ee/tunniplaan/');
 	await page.select('#course_select', '1692');
@@ -61,12 +61,13 @@ const getAllSchoolTimesAndLessons_old = async (options?: { getNextWeek?: boolean
 	return fil_times;
 };
 
-const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }): Promise<lesson[][]> => {
-	const b = await Puppeteer.launch({ headless: true });
+const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean, grupp?: `${number}` }): Promise<lesson[][]> => {
+	
+	const b = await Puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 	const page = await b.newPage();
 	const raw_lessons_objects: raw_lesson[] = [];
 	const date_data = new Date(options?.getNextWeek ? new Date().getTime() + 7 * 24 * 60 * 60 * 1000 : new Date().getTime());
-	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=1692&nadal=${date_data.getDate()}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
+	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=${options?.grupp ?? '1692'}&nadal=${date_data.getDate()}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
 	await page.goto(url, {
 		waitUntil: 'load',
 	});
@@ -194,7 +195,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean }):
 		}
 	}
 
-	client.cache.set(options?.getNextWeek ? week_type.next_week : week_type.this_week, fil_times);
+		client.cache.set(options?.getNextWeek ? `${options?.grupp ?? '1692'}_${week_type.next_week}` : `${options?.grupp ?? '1692'}_${week_type.this_week}`, fil_times);
 	return fil_times;
 };
 
@@ -275,6 +276,13 @@ const startCronJobs = async () => {
 	}
 };
 
+const getTunniplaanImage = async (grupp_id: string) => {
+	const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=${grupp_id}`, { responseType: 'arraybuffer' });
+	const pdfBuffer = Buffer.from(response.data);
+  	const pdf_image = await generateImgFromPDF(pdfBuffer);
+	return pdf_image;
+};
+
 export = { init: async () => {
 	await startCronJobs();
 	cron.schedule('0 0 * * *', async () => {
@@ -300,4 +308,4 @@ export = { init: async () => {
 			if (channel.isSendable()) await channel.send({ content: `${weeksSinceSeptember1(date)}. nädala tunniplaan`, files: [attachmentDiscord] });
 		});
 	});
-}, getAllSchoolTimesAndLessons, getAllSchoolTimesAndLessons_old };
+}, getAllSchoolTimesAndLessons, getAllSchoolTimesAndLessons_old, getTunniplaanImage };
