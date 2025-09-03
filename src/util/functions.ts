@@ -106,4 +106,10 @@ const getGroups = async (): Promise<Grupp[]> => {
 	return data.grupid;
 };
 
-export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1, generateImgFromPDF, getGroups };
+function getMonday(d: Date): Date {
+  const day = d.getDay(),
+  diff = d.getDate() - day + (day == 0 ? -6 : 1);
+  return new Date(d.setDate(diff));
+}
+
+export { useModal, getFoodForToday, getBussTime, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1, generateImgFromPDF, getGroups, getMonday };

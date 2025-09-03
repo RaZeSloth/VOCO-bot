@@ -276,8 +276,8 @@ const startCronJobs = async () => {
 	}
 };
 
-const getTunniplaanImage = async (grupp_id: string) => {
-	const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=${grupp_id}`, { responseType: 'arraybuffer' });
+const getTunniplaanImage = async (grupp_id: string, date: Date = new Date()) => {
+	const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=${grupp_id}&nadal=${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`, { responseType: 'arraybuffer' });
 	const pdfBuffer = Buffer.from(response.data);
   	const pdf_image = await generateImgFromPDF(pdfBuffer);
 	return pdf_image;

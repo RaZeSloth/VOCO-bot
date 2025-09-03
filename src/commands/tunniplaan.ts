@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ApplicationIntegrationType, AttachmentBuilder, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, InteractionContextType, StringSelectMenuBuilder } from 'discord.js';
 import { command, Grupp, lesson, week_type } from '../util/interfaces';
 import lessonsModel from '../model/lessonsModel';
-import { getGroups, sanitizeString, sendEmail, weeksSinceSeptember1 } from '../util/functions';
+import { getGroups, getMonday, sendEmail, weeksSinceSeptember1 } from '../util/functions';
 import emailModel from '../model/emailModel';
 const days = [
 	{
@@ -401,7 +401,7 @@ export = {
 				await int.editReply({ content: 'Sellist gruppi ei leitud' });
 				return;
 			}
-			const pdf_image = await (await import('../util/tunniplaan')).getTunniplaanImage(grupp_id);
+			const pdf_image = await (await import('../util/tunniplaan')).getTunniplaanImage(grupp_id, getMonday(new Date()));
 			const attachment = new AttachmentBuilder(pdf_image);
 			await int.editReply({ files: [attachment], content: `${weeksSinceSeptember1(new Date())}. nädala tunniplaan` });
 		}
