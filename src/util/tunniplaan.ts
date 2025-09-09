@@ -250,7 +250,8 @@ const startCronJobs = async () => {
 		lastLessonTime.setHours(lastLessonHour);
 		lastLessonTime.setMinutes(lastLessonMin);
 		const lastLesson_object_cron = { cron: `${lastLessonMin} ${lastLessonHour} * * *`, date: lastLessonTime };
-		const bussTimeNotification = cron.schedule(lastLesson_object_cron.cron, async () => {
+		// 9/9/2025 website scraping is f*cking cooked yo
+		/* const bussTimeNotification = cron.schedule(lastLesson_object_cron.cron, async () => {
 			const bussTimesArray = getLastLessonBuss(lastLesson.time, await getBussTime());
 			const embed = new EmbedBuilder()
 				.setTitle('`4` Alasi (Karete suunas)')
@@ -258,16 +259,17 @@ const startCronJobs = async () => {
 				.setColor('#000000');
 			await (await client.channels.fetch('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1066785642115235900>', embeds: [embed] });
 		}, { timezone: 'Europe/Tallinn' });
-		cron_jobs.add(bussTimeNotification);
+		cron_jobs.add(bussTimeNotification); 
 		console.log(green(`Buss notification at: ${lastLesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
-
+*/
 		const food = cron.schedule('15 12 * * *', async () => {
 			const embed = new EmbedBuilder()
 				.setTitle('Söömine! 12:30 - 13:00')
 				.setColor('#000000');
-			const food = await getFoodForToday();
+			const foodBuffer = await getFoodForToday();
 			embed.setImage('attachment://sook.png');
-			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ embeds: [embed], files: [new AttachmentBuilder(food, { name: 'sook.png' })] });
+			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ embeds: [embed], files: [new AttachmentBuilder(foodBuffer, { name: 'sook.png' })] });
+			food.stop();
 		}, { timezone: 'Europe/Tallinn' });
 		cron_jobs.add(food);
 		console.log(green('Food at 12:15 is scheduled'));
