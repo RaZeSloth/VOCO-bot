@@ -62,10 +62,11 @@ const getAllSchoolTimesAndLessons_old = async (options?: { getNextWeek?: boolean
 };
 
 const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean, grupp?: `${number}` }): Promise<lesson[][]> => {
-	
+
 	const b = await Puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 	const page = await b.newPage();
 	const raw_lessons_objects: raw_lesson[] = [];
+	try {
 	const date_data = new Date(options?.getNextWeek ? new Date().getTime() + 7 * 24 * 60 * 60 * 1000 : new Date().getTime());
 	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=${options?.grupp ?? '1692'}&nadal=${date_data.getDate()}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
 	await page.goto(url, {
@@ -196,7 +197,10 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean, gr
 	}
 
 		client.cache.set(options?.getNextWeek ? `${options?.grupp ?? '1692'}_${week_type.next_week}` : `${options?.grupp ?? '1692'}_${week_type.this_week}`, fil_times);
-	return fil_times;
+		return fil_times;
+	} finally {
+		await b.close();
+	}
 };
 
 const getMinforCron = (time: string) => {
@@ -239,6 +243,7 @@ const startCronJobs = async () => {
 				notification_embed.setDescription(codeBlock(`${lessonData.lessons.map(data => `${data.name}${data?.lesson_group ? ` - ${data.lesson_group}` : ''}`).join('\n----------------------------------\n')}`));
 				await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1029335363040329749>', embeds: [notification_embed] });
 				job.stop();
+				cron_jobs.delete(job);
 			}, { timezone: 'Europe/Tallinn' });
 			cron_jobs.add(job);
 			console.log(green(`Lesson nr ${currentDay.indexOf(lessonData) + 1} at ${lesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
@@ -270,6 +275,7 @@ const startCronJobs = async () => {
 			embed.setImage('attachment://sook.png');
 			await (client.channels.cache.get('1029381699009794139') as GuildTextBasedChannel).send({ embeds: [embed], files: [new AttachmentBuilder(foodBuffer, { name: 'sook.png' })] });
 			food.stop();
+			cron_jobs.delete(food);
 		}, { timezone: 'Europe/Tallinn' });
 		cron_jobs.add(food);
 		console.log(green('Food at 12:15 is scheduled'));

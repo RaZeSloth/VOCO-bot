@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder, LabelBuilder, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { inspect } from 'util';
 import { VocoBot } from '../util/Bot';
 import { useModal } from '../util/functions';
@@ -27,7 +27,7 @@ export = {
 	],
 	async execute(client: VocoBot, int: ChatInputCommandInteraction) {
 		if (int.user.id !== '777474453114191882') {
-			return int.reply({ ephemeral: true, content: 'ඞ' });
+			return int.reply({ flags: MessageFlags.Ephemeral, content: 'ඞ' });
 		}
 		const d = Date.now();
 		const deleteButton = new ButtonBuilder()
@@ -35,7 +35,7 @@ export = {
 			.setEmoji('883358104320868353')
 			.setStyle(ButtonStyle.Danger);
 		const modal = new ModalBuilder()
-			.setComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder().setCustomId('code').setLabel('Code').setRequired(true).setStyle(TextInputStyle.Paragraph)))
+			.addLabelComponents(new LabelBuilder().setLabel('Code').setTextInputComponent(new TextInputBuilder().setCustomId('code').setRequired(true).setStyle(TextInputStyle.Paragraph)))
 			.setTitle('Eval modal 📥')
 			.setCustomId(`eval_${d}`);
 		const editModalInt = await useModal(int, modal, 20 * 60 * 60 * 1000);
@@ -60,7 +60,8 @@ export = {
 			embed
 				.addFields({ name: '📥 Input', value: `\`\`\`\n${(code.length > 1024) ? code.substring(0, 990) + '...' : code}\n\`\`\`` }, { name: output, value: `\`\`\`js\n${evaled}\n\`\`\`` }, { name: 'Status', value: 'Success' })
 				.setColor('#000000');
-			const msg = await editModalInt.reply({ embeds: [embed], components: hidden ? [] : [new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton)], fetchReply: true, ephemeral: hidden });
+			const response = await editModalInt.reply({ embeds: [embed], components: hidden ? [] : [new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton)], flags: hidden ? MessageFlags.Ephemeral : undefined });
+			const msg = await response.fetch();
 			if (!hidden) {
 				const inter = await msg.awaitMessageComponent({ componentType: ComponentType.Button, filter: (m) => int.user.id === m.user.id }).catch(() => null);
 				if (inter) {
@@ -83,7 +84,8 @@ export = {
 					{ name: 'Status', value: 'Error' },
 				)
 				.setColor('#000000');
-			const msg = await editModalInt.reply({ embeds: [embed], components: hidden ? [] : [new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton)], fetchReply: true, ephemeral: hidden });
+			const response = await editModalInt.reply({ embeds: [embed], components: hidden ? [] : [new ActionRowBuilder<ButtonBuilder>().addComponents(deleteButton)], flags: hidden ? MessageFlags.Ephemeral : undefined });
+			const msg = await response.fetch();
 			if (!hidden) {
 				const inter = await msg.awaitMessageComponent({ componentType: ComponentType.Button, filter: (m) => int.user.id === m.user.id }).catch(() => null);
 				if (inter) {

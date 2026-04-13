@@ -1,4 +1,4 @@
-import { ApplicationIntegrationType, AttachmentBuilder, EmbedBuilder, InteractionContextType } from 'discord.js';
+import { ApplicationIntegrationType, AttachmentBuilder, EmbedBuilder, InteractionContextType, MessageFlags } from 'discord.js';
 import { command } from '../util/interfaces';
 
 export = {
@@ -7,7 +7,7 @@ export = {
 	integration_types: [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall],
 	contexts: [InteractionContextType.BotDM, InteractionContextType.Guild, InteractionContextType.PrivateChannel],
 	async execute(client, int) {
-		await int.deferReply({ ephemeral: true });
+		await int.deferReply({ flags: MessageFlags.Ephemeral });
 		const embed = new EmbedBuilder()
 			.setTitle('Söök')
 			.setColor('#000000')

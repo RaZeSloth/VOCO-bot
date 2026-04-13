@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { ActionRowBuilder, ChatInputCommandInteraction, codeBlock, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { ActionRowBuilder, ChatInputCommandInteraction, codeBlock, EmbedBuilder, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { useModal } from '../util/functions';
 import { command } from '../util/interfaces';
 
@@ -8,7 +8,7 @@ export = {
 	description: 'Reversitud bash shell boti hosti (Mõeldud ainult Mikule)',
 	async execute(client, int: ChatInputCommandInteraction) {
 		if (int.user.id !== '777474453114191882') {
-			return int.reply({ ephemeral: true, content: 'Ainult Mikule mõeldud kommand.' });
+			return int.reply({ flags: MessageFlags.Ephemeral, content: 'Ainult Mikule mõeldud kommand.' });
 		}
 		const d = Date.now();
 		const modal = new ModalBuilder()

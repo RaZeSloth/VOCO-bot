@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ApplicationIntegrationType, AttachmentBuilder, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, InteractionContextType, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandOptionType, ApplicationCommandType, ApplicationIntegrationType, AttachmentBuilder, ChatInputCommandInteraction, codeBlock, ComponentType, EmbedBuilder, InteractionContextType, MessageFlags, StringSelectMenuBuilder } from 'discord.js';
 import { command, Grupp, lesson, week_type } from '../util/interfaces';
 import lessonsModel from '../model/lessonsModel';
 import { getGroups, getMonday, sendEmail, weeksSinceSeptember1 } from '../util/functions';
@@ -191,10 +191,10 @@ export = {
 			const findGroup = groups.find(g => g.id.toString() === grupp || g.tahis.toLowerCase() === grupp.toLowerCase());
 
 			if (!findGroup?.id) {
-				await int.reply({ content: 'Gruppi ei leitud.', ephemeral: true });
+				await int.reply({ content: 'Gruppi ei leitud.', flags: MessageFlags.Ephemeral });
 				return;
 			}
-			await int.deferReply({ ephemeral: transparent ?? true });
+			await int.deferReply({ flags: (transparent ?? true) ? MessageFlags.Ephemeral : undefined });
 			const day = new Date().getDay();
 			const date = Date.now();
 			let lesson_array: lesson[][] = [];
@@ -249,7 +249,7 @@ export = {
 				}
 
 			}
-			const r = await int.followUp({ ephemeral: true, embeds: [embed], components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)] });
+			const r = await int.followUp({ flags: MessageFlags.Ephemeral, embeds: [embed], components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu)] });
 			const col = r.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 20 * 60_000 });
 			col.on('collect', async (i) => {
 				const day = parseInt(i.values[0]);
@@ -340,7 +340,7 @@ export = {
 			await int.editReply({ embeds: [embed] });
 		} */
 		if (subcommand === 'lisa') {
-			await int.deferReply({ ephemeral: true });
+			await int.deferReply({ flags: MessageFlags.Ephemeral });
 			const email = int.options.getString('email');
 			// Check if email is an actual email with regex
 			if (!email.match(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/)) {
@@ -364,7 +364,7 @@ export = {
 			await int.editReply({ embeds: [new EmbedBuilder().setTitle('Uus email lisatud ja kiri saadetud!').setDescription(codeBlock(email))] });
 		}
 		if (subcommand === 'eemalda') {
-			await int.deferReply({ ephemeral: true });
+			await int.deferReply({ flags: MessageFlags.Ephemeral });
 			const email = int.options.getString('email');
 			const emailData = await emailModel.findOne({ userId: int.user.id });
 			if (!emailData) {
@@ -383,7 +383,7 @@ export = {
 			await int.editReply({ embeds: [new EmbedBuilder().setTitle('Eemail eemaldatud edukalt!').setDescription(codeBlock(emailData.emails.join(', ')))] });
 		}
 		if (subcommand === 'lahku') {
-			await int.deferReply({ ephemeral: true });
+			await int.deferReply({ flags: MessageFlags.Ephemeral });
 			const emailExists = await emailModel.exists({ userId: int.user.id });
 			if (!emailExists) {
 				await int.editReply({ content: 'Sa ei ole liitunud tunniplaani uuendustega' });
@@ -394,7 +394,7 @@ export = {
 		}
 		if (subcommand === 'pilt') {
 			const transparent = int.options.getBoolean('läbipaistvus');
-			await int.deferReply({ ephemeral: transparent ?? true });
+			await int.deferReply({ flags: (transparent ?? true) ? MessageFlags.Ephemeral : undefined });
 			const grupp_id = int.options.getString('grupp');
 			const grupps = await getGroups();
 			if (!grupps.find(g => g.id.toString() === grupp_id || g.tahis.toLowerCase() === grupp_id.toLowerCase())) {

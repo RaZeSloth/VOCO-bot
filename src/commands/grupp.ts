@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder, GuildMember } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationCommandType, ChatInputCommandInteraction, EmbedBuilder, GuildMember, MessageFlags } from 'discord.js';
 import { command } from '../util/interfaces';
 
 export = {
@@ -31,7 +31,7 @@ export = {
 		},
 	],
 	async execute(client, int: ChatInputCommandInteraction) {
-		if (int.guild.id !== '1021468029726494751') return await int.reply({ content: 'See käsk töötab ainult ITA22 serveris!', ephemeral: true });
+		if (int.guild.id !== '1021468029726494751') return await int.reply({ content: 'See käsk töötab ainult ITA22 serveris!', flags: MessageFlags.Ephemeral });
 		const grupp = int.options.getString('grupp');
 		const nimi = int.options.getString('nimi');
 		const kasutaja = (int.member as GuildMember);
@@ -40,6 +40,6 @@ export = {
 			await (int.member as GuildMember).roles.remove(['1021472465744044092', '1021472491367047188']);
 		}
 		await kasutaja.roles.add(grupp === 'g1' ? '1021472465744044092' : '1021472491367047188');
-		return await int.reply({ embeds: [new EmbedBuilder().setColor('#000000').setDescription(`Nimi muutetud: **${nimi}**\nTeie grupp: ${grupp === 'g1' ? '<@&1021472465744044092>' : '<@&1021472491367047188>'}`)], ephemeral: true });
+		return await int.reply({ embeds: [new EmbedBuilder().setColor('#000000').setDescription(`Nimi muutetud: **${nimi}**\nTeie grupp: ${grupp === 'g1' ? '<@&1021472465744044092>' : '<@&1021472491367047188>'}`)], flags: MessageFlags.Ephemeral });
 	},
 } as command;
