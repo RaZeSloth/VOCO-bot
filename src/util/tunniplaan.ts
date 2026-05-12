@@ -131,7 +131,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean, gr
 	const amount_of_lessons_per_day: number[] = [];
 	const day_html_collection_of_children = (await page.$$('.fc-content-col'));
 	for (const day of day_html_collection_of_children) {
-		const amount_of_lessons = await page.evaluate(e => e.children[1].children.length, day);
+		const amount_of_lessons = await page.evaluate(e => e.children[1]?.children.length ?? 0, day);
 		amount_of_lessons_per_day.push(amount_of_lessons);
 	}
 	const divideLessons = (lessons: lesson[], lessonsPerDay: number[]): lesson[][] => {
@@ -143,7 +143,7 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean, gr
 			while (lessonsToTake > 0 && currentIndex < lessons.length) {
 				const lessonCount = lessons[currentIndex].lesson_count;
 				if (lessonCount > lessonsToTake) {
-					currentLessons.push({ lesson_count: lessonsToTake, lesson: lessons[currentIndex] });
+					currentLessons.push(lessons[currentIndex]);
 					currentIndex++;
 					lessonsToTake = 0;
 				} else {
