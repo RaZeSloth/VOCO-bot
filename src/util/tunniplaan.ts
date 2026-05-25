@@ -5,7 +5,7 @@ import { lesson, partial_lesson, raw_lesson, week_type } from './interfaces';
 import { client } from '..';
 import { AttachmentBuilder, codeBlock, EmbedBuilder, GuildTextBasedChannel, time, TimestampStyles } from 'discord.js';
 
-import { generateImgFromPDF, getBussTime, getFoodForToday, getLastLessonBuss, sanitizeString, sendEmail, weeksSinceSeptember1 } from './functions';
+import { generateImgFromPDF, getFoodForToday, sanitizeString, sendEmail, weeksSinceSeptember1 } from './functions';
 import lessonsModel from '../model/lessonsModel';
 import axios from 'axios';
 import fs from 'fs';
@@ -65,136 +65,54 @@ const getAllSchoolTimesAndLessons = async (options?: { getNextWeek?: boolean, gr
 
 	const b = await Puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 	const page = await b.newPage();
-	const raw_lessons_objects: raw_lesson[] = [];
 	try {
-	const date_data = new Date(options?.getNextWeek ? new Date().getTime() + 7 * 24 * 60 * 60 * 1000 : new Date().getTime());
-	const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=${options?.grupp ?? '1692'}&nadal=${date_data.getDate()}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
-	await page.goto(url, {
-		waitUntil: 'load',
-	});
-	const contents = await page.$$('.fc-content');
-	for (const content of contents) {
-		const content_object = await page.evaluate(e => {
-			return { time: e.querySelector('.fc-time span')?.textContent, lesson: e.querySelector('.fc-title')?.textContent };
-		}, content);
-		if (content_object.time && content_object.lesson) {
-			raw_lessons_objects.push(content_object);
-		}
-	}
+		const date_data = new Date(options?.getNextWeek ? new Date().getTime() + 7 * 24 * 60 * 60 * 1000 : new Date().getTime());
+		const url = `https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaan?oppegrupp=${options?.grupp ?? '1692'}&nadal=${date_data.getDate()}.${date_data.getMonth() + 1}.${date_data.getFullYear()}`;
+		await page.goto(url, {
+			waitUntil: 'load',
+		});
+		const day_html_collection_of_children = await page.$$('.fc-content-col');
+		const fil_times: lesson[][] = [];
+		for (const day of day_html_collection_of_children) {
+			const day_raw: raw_lesson[] = await page.evaluate(e => {
+				const container = e.children[1];
+				if (!container) return [];
+				const results: { time: string; lesson: string }[] = [];
+				for (const child of Array.from(container.children)) {
+					const time = child.querySelector('.fc-time span')?.textContent;
+					const lesson = child.querySelector('.fc-title')?.textContent;
+					if (time && lesson) results.push({ time, lesson });
+				}
+				return results;
+			}, day);
 
-	const les_object_arr: lesson[] = raw_lessons_objects.reduce((acc: lesson[], { time, lesson }) => {
-		const lastLesson: lesson = acc[acc.length - 1];
-		if (lastLesson && lastLesson.time === time) {
-			lastLesson.lessons.push({ name: lesson });
-			lastLesson.lesson_count++;
-		} else {
-			acc.push({ time, lesson_count: 1, lessons: [{ name: lesson }] });
-		}
-		return acc;
-	}, []);
-
-	// Old bad code which is not very efficient with Eve's plans on making the lesson schedules...
-	/* for (const partial_lesson of raw_lessons_objects) {
-		const currentLessonTime = partial_lesson.time;
-		const beforeLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) - 1]?.time;
-		const afterLessonTime = raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1]?.time;
-		if (currentLessonTime === afterLessonTime) {
-			const obj: lesson = { time: partial_lesson.time, lesson_count: 0, lessons: [] };
-			if (partial_lesson.lesson.includes('R1')) {
-				obj.lessons.push(partial_lesson.lesson);
-				obj.lessons.push(raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson);
-				obj.lesson_count += 2;
-			}
-			if (partial_lesson.lesson.includes('R2')) {
-				obj.lessons.push(partial_lesson.lesson);
-				obj.lessons.push(raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson);
-				obj.lesson_count += 2;
-			}
-			if (!obj.lessons.length) {
-				obj.lessons.push(partial_lesson.lesson);
-				obj.lessons.push(raw_lessons_objects[raw_lessons_objects.indexOf(partial_lesson) + 1].lesson);
-				obj.lesson_count += 2;
-			}
-			les_object_arr.push(obj);
-		}
-		if (currentLessonTime === beforeLessonTime) {
-			continue;
-		}
-		if (currentLessonTime !== beforeLessonTime && currentLessonTime !== afterLessonTime) {
-			const obj: lesson = { time: partial_lesson.time, lesson_count: 1, lessons: [] };
-			obj.lessons.push(partial_lesson.lesson);
-			les_object_arr.push(obj);
-		}
-	} */
-
-
-	const amount_of_lessons_per_day: number[] = [];
-	const day_html_collection_of_children = (await page.$$('.fc-content-col'));
-	for (const day of day_html_collection_of_children) {
-		const amount_of_lessons = await page.evaluate(e => e.children[1]?.children.length ?? 0, day);
-		amount_of_lessons_per_day.push(amount_of_lessons);
-	}
-	const divideLessons = (lessons: lesson[], lessonsPerDay: number[]): lesson[][] => {
-		const result: lesson[][] = [];
-		let currentIndex = 0;
-		for (let i = 0; i < lessonsPerDay.length; i++) {
-			const currentLessons = [];
-			let lessonsToTake = lessonsPerDay[i];
-			while (lessonsToTake > 0 && currentIndex < lessons.length) {
-				const lessonCount = lessons[currentIndex].lesson_count;
-				if (lessonCount > lessonsToTake) {
-					currentLessons.push(lessons[currentIndex]);
-					currentIndex++;
-					lessonsToTake = 0;
+			const day_lessons: lesson[] = day_raw.reduce((acc: lesson[], { time, lesson }) => {
+				const last = acc[acc.length - 1];
+				if (last && last.time === time) {
+					last.lessons.push({ name: lesson });
+					last.lesson_count++;
 				} else {
-					currentLessons.push(lessons[currentIndex]);
-					lessonsToTake -= lessonCount;
-					currentIndex++;
+					acc.push({ time, lesson_count: 1, lessons: [{ name: lesson }] });
 				}
-			}
-			result.push(currentLessons);
-		}
-		return result;
+				return acc;
+			}, []);
 
-	};
-	const fil_times = divideLessons(les_object_arr, amount_of_lessons_per_day);
-	/* Very ugly bad code, which does not work if the days between have 0 days which is bad, new function fixes that problem by not using this if statements in this commented code. */
-	/* let m: number;
-	let c: number;
-	const fil_times: lesson[][] = [];
-	for (let i = 0; i < les_object_arr.length; i++) {
-		if (!m) {
-			m = parseInt(les_object_arr[i].time);
-			fil_times[0] = [les_object_arr[i]];
-			c = i;
-		} else if (m < parseInt(les_object_arr[i].time)) {
-			if (amount_of_lessons_per_day[c] === fil_times[c].reduce((a, b) => a + b.lesson_count, 0)) {
-				c++;
-				fil_times[c] = [les_object_arr[i]];
-			} else {
-				fil_times[c].push(les_object_arr[i]);
-				m = parseInt(les_object_arr[i].time);
-			}
-		} else if (m > parseInt(les_object_arr[i].time)) {
-			c++;
-			fil_times[c] = [les_object_arr[i]];
-			m = parseInt(les_object_arr[i].time);
+			fil_times.push(day_lessons);
 		}
-	} */
-	for (const day of fil_times) {
-		for (const data of day) {
-			for (const lesson of data.lessons) {
-				const lessonName = sanitizeString(lesson.name);
-				console.log(lessonName);
-				const existingLesson = await lessonsModel.findOne({ lessonName });
-				if (!existingLesson) {
-					await lessonsModel.create({ lessonName, lastUpdated: new Date() });
-				} else if (existingLesson.lessonGroup) {
-					lesson.lesson_group = existingLesson.lessonGroup;
+		for (const day of fil_times) {
+			for (const data of day) {
+				for (const lesson of data.lessons) {
+					const lessonName = sanitizeString(lesson.name);
+					console.log(lessonName);
+					const existingLesson = await lessonsModel.findOne({ lessonName });
+					if (!existingLesson) {
+						await lessonsModel.create({ lessonName, lastUpdated: new Date() });
+					} else if (existingLesson.lessonGroup) {
+						lesson.lesson_group = existingLesson.lessonGroup;
+					}
 				}
 			}
 		}
-	}
 
 		client.cache.set(options?.getNextWeek ? `${options?.grupp ?? '1692'}_${week_type.next_week}` : `${options?.grupp ?? '1692'}_${week_type.this_week}`, fil_times);
 		return fil_times;
@@ -254,7 +172,6 @@ const startCronJobs = async () => {
 		const lastLessonTime = new Date();
 		lastLessonTime.setHours(lastLessonHour);
 		lastLessonTime.setMinutes(lastLessonMin);
-		const lastLesson_object_cron = { cron: `${lastLessonMin} ${lastLessonHour} * * *`, date: lastLessonTime };
 		// 9/9/2025 website scraping is f*cking cooked yo
 		/* const bussTimeNotification = cron.schedule(lastLesson_object_cron.cron, async () => {
 			const bussTimesArray = getLastLessonBuss(lastLesson.time, await getBussTime());
@@ -264,7 +181,7 @@ const startCronJobs = async () => {
 				.setColor('#000000');
 			await (await client.channels.fetch('1029381699009794139') as GuildTextBasedChannel).send({ content: '<@&1066785642115235900>', embeds: [embed] });
 		}, { timezone: 'Europe/Tallinn' });
-		cron_jobs.add(bussTimeNotification); 
+		cron_jobs.add(bussTimeNotification);
 		console.log(green(`Buss notification at: ${lastLesson_object_cron.date.toLocaleTimeString('et-EE', { hour: '2-digit', minute:'2-digit' })} is scheduled`));
 */
 		const food = cron.schedule('15 12 * * *', async () => {
@@ -287,7 +204,7 @@ const startCronJobs = async () => {
 const getTunniplaanImage = async (grupp_id: string, date: Date = new Date()) => {
 	const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=${grupp_id}&nadal=${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`, { responseType: 'arraybuffer' });
 	const pdfBuffer = Buffer.from(response.data);
-  	const pdf_image = await generateImgFromPDF(pdfBuffer);
+	const pdf_image = await generateImgFromPDF(pdfBuffer);
 	return pdf_image;
 };
 
