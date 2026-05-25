@@ -53,11 +53,11 @@ export = {
 					description: 'Grupp, mille tunniplaani näidata',
 					type: ApplicationCommandOptionType.String,
 					required: false,
-					autocomplete: true
-				}
+					autocomplete: true,
+				},
 			],
 		},
-/* 		{
+		/* 		{
 			name: 'seadista',
 			description: 'Seadista tunniplaani gruppe',
 			type: ApplicationCommandOptionType.Subcommand,
@@ -140,15 +140,15 @@ export = {
 					type: ApplicationCommandOptionType.String,
 					description: 'Grupp, mille tunniplaani pilti näidata',
 					required: true,
-					autocomplete: true
+					autocomplete: true,
 				},
 				{
 					name: 'läbipaistvus',
 					type: ApplicationCommandOptionType.Boolean,
 					description: 'Näita tunniplaani läbipaistvana või mitte',
-					required: false
-				}
-			]
+					required: false,
+				},
+			],
 		},
 	],
 	async autocomplete(client, int) {
@@ -175,7 +175,7 @@ export = {
 
 			const groups = await getGroups();
 
-			const filteredGroups: Grupp[] = groups.filter(group => group.tahis.toLowerCase().includes(focused.value.toLowerCase()))
+			const filteredGroups: Grupp[] = groups.filter(group => group.tahis.toLowerCase().includes(focused.value.toLowerCase()));
 			const firstTenGroups = filteredGroups.map((group: Grupp) => ({ name: `${group.tahis}`, value: group.id.toString() })).slice(0, 23);
 			return await int.respond(focused.value !== '' ? firstTenGroups : filteredGroups.map(group => ({ name: `${group.tahis}`, value: group.id.toString() })).slice(0, 23));
 		}
