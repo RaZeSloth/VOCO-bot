@@ -219,6 +219,9 @@ export = { init: async () => {
 	cron.schedule('0 22 * * 0', async () => {
 		const date = new Date();
 		date.setTime(date.getTime() + 24 * 60 * 60 * 1000);
+		const next_week_lessons = await getAllSchoolTimesAndLessons({ getNextWeek: true });
+		const has_lessons = next_week_lessons.some(day => day.length > 0);
+		if (!has_lessons) return;
 		const writer = fs.createWriteStream('tunniplaan.pdf');
 		const response = await axios.get(`https://siseveeb.voco.ee/veebivormid/tunniplaan/tunniplaani_pdf?vaade=grupid&oppegrupp=1692&nadal=${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`, { responseType: 'stream' });
 		response.data.pipe(writer);
