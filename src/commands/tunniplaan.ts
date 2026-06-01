@@ -397,11 +397,12 @@ export = {
 			await int.deferReply({ flags: (transparent ?? true) ? MessageFlags.Ephemeral : undefined });
 			const grupp_id = int.options.getString('grupp');
 			const grupps = await getGroups();
-			if (!grupps.find(g => g.id.toString() === grupp_id || g.tahis.toLowerCase() === grupp_id.toLowerCase())) {
+			const grupp = grupps.find(g => g.id.toString() === grupp_id || g.tahis.toLowerCase() === grupp_id.toLowerCase());
+			if (!grupp) {
 				await int.editReply({ content: 'Sellist gruppi ei leitud' });
 				return;
 			}
-			const pdf_image = await (await import('../util/tunniplaan')).getTunniplaanImage(grupp_id, getMonday(new Date()));
+			const pdf_image = await (await import('../util/tunniplaan')).getTunniplaanImage(grupp.id.toString(), getMonday(new Date()));
 			const attachment = new AttachmentBuilder(pdf_image);
 			await int.editReply({ files: [attachment], content: `${weeksSinceSeptember1(new Date())}. nädala tunniplaan` });
 		}
